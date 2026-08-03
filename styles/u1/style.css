@@ -204,3 +204,49 @@ button.active {
 .dialog-default   { border-bottom-color: @color3; }
 .dialog-secondary { border-bottom-color: @color2; }
 .dialog-primary   { border-bottom-color: @accent; }
+
+/* ---- u1 Home panel (main_menu reflow) ---- */
+.u1-home { background-color: @bg; padding: 8px; }
+
+button.u1-icon {
+    min-width: 96px;
+    min-height: 96px;
+    background-color: @buttons-bg;
+    border: 1px solid @lines;
+    border-radius: 18px;
+}
+button.u1-icon:active { background-color: @raised; border-color: @accent; }
+
+.u1-card {
+    background-color: @buttons-bg;
+    border: 1px solid @lines;
+    border-radius: 18px;
+    padding: 14px;
+}
+
+.u1-msg { color: @text; font-size: 1.3em; }
+.u1-tool-label { color: @text-dim; font-size: 0.85em; }
+
+button.u1-chip {
+    min-width: 58px;
+    min-height: 58px;
+    border-radius: 29px;
+    background-color: @accent;
+    color: #ffffff;
+    border: 0;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+button.u1-chip:active { background-color: @accent-dim; }
+
+button.u1-start {
+    background-color: @accent;
+    color: #ffffff;
+    border: 0;
+    border-radius: 22px;
+    padding: 8px 30px;
+    font-weight: bold;
+    font-size: 1.15em;
+    min-width: 150px;
+}
+button.u1-start:active { background-color: @accent-dim; }
