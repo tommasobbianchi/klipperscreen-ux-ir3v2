@@ -1,0 +1,477 @@
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0C0D12;--card:#1A1D2C;--s3:#242840;
+  --orange:#F06820;--teal:#00B49C;
+  --text:#EEF0FA;--dim:#8A8EA0;
+  --radius:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;min-height:100vh;display:flex;justify-content:center}
+.wrapper{width:100%;max-width:860px;min-height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* STATUS BAR */
+.status-bar{height:36px;background:#10111A;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:12px;color:var(--dim);flex-shrink:0;border-bottom:1px solid #1E2038}
+.status-bar .left{display:flex;gap:12px;align-items:center}
+.status-bar .dot{width:7px;height:7px;border-radius:50%;background:#34D399}
+
+/* SUB-TAB BAR */
+.sub-tabs{height:54px;display:flex;background:#10111A;border-bottom:2px solid #1E2038;flex-shrink:0}
+.sub-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--dim);font-size:11px;font-weight:500;transition:all .2s;position:relative;user-select:none}
+.sub-tab svg{width:20px;height:20px;fill:currentColor}
+.sub-tab.active{color:var(--orange)}
+.sub-tab.active::after{content:'';position:absolute;bottom:-2px;left:20%;right:20%;height:2px;background:var(--orange);border-radius:1px}
+
+/* CONTENT */
+.tab-content{flex:1;overflow-y:auto;padding:14px;display:none}
+.tab-content.active{display:block}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-title .icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.card-title .icon svg{width:16px;height:16px;fill:#fff}
+
+/* TEMP TAB */
+.temp-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.temp-card{background:var(--card);border-radius:var(--radius);padding:16px;position:relative;overflow:hidden}
+.temp-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.temp-card.extruder::before{background:var(--orange)}
+.temp-card.bed::before{background:var(--teal)}
+.temp-label{font-size:12px;color:var(--dim);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.temp-label svg{width:14px;height:14px}
+.temp-value{font-size:36px;font-weight:700;line-height:1.1}
+.temp-value span{font-size:18px;color:var(--dim);font-weight:400}
+.temp-target{font-size:13px;color:var(--dim);margin-top:2px}
+.temp-controls{display:flex;align-items:center;gap:8px;margin-top:12px}
+.temp-btn{width:58px;height:58px;border-radius:14px;border:none;background:var(--s3);color:var(--text);font-size:22px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
+.temp-btn:active{transform:scale(.93);opacity:.8}
+.temp-btn.minus{font-size:26px}
+.temp-input{flex:1;text-align:center;font-size:20px;font-weight:600;background:transparent;border:2px solid var(--s3);border-radius:10px;color:var(--text);padding:8px;outline:none;height:46px}
+.temp-input:focus{border-color:var(--orange)}
+
+/* PRESETS */
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.preset-btn{padding:8px 16px;border-radius:10px;border:none;background:var(--s3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none}
+.preset-btn:active{transform:scale(.95)}
+.preset-btn.active{background:var(--orange);color:#fff}
+
+/* MOVEMENT TAB */
+.step-selector{display:flex;gap:8px;margin-bottom:14px}
+.step-btn{flex:1;height:48px;border-radius:12px;border:2px solid var(--s3);background:transparent;color:var(--text);font-size:15px;font-weight:600;cursor:pointer;transition:all .15s;user-select:none}
+.step-btn.active{border-color:var(--orange);background:rgba(240,104,32,.12);color:var(--orange)}
+.step-btn:active{transform:scale(.95)}
+
+.move-grid{display:grid;grid-template-columns:1fr auto;gap:12px}
+.jog-pad{display:grid;grid-template-columns:repeat(3,70px);grid-template-rows:repeat(3,70px);gap:6px;justify-content:center}
+.jog-btn{border-radius:14px;border:none;background:var(--s3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
+.jog-btn:active{transform:scale(.92);background:var(--orange)}
+.jog-btn.home{background:var(--orange);color:#fff;font-size:12px}
+.jog-btn.empty{background:transparent;cursor:default}
+.jog-btn.empty:active{transform:none}
+.jog-btn svg{width:22px;height:22px;fill:currentColor}
+
+.z-col{display:flex;flex-direction:column;gap:6px;align-items:center}
+.z-col .z-label{font-size:12px;color:var(--dim);font-weight:600;margin-bottom:2px}
+.z-btn{width:62px;height:62px;border-radius:14px;border:none;background:var(--s3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
+.z-btn:active{transform:scale(.92);background:var(--teal)}
+.z-btn svg{width:20px;height:20px;fill:currentColor}
+.z-home{width:62px;height:42px;border-radius:10px;border:none;background:var(--teal);color:#fff;font-size:11px;font-weight:600;cursor:pointer;user-select:none}
+.z-home:active{transform:scale(.93)}
+
+.pos-card{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.pos-item{background:var(--s3);border-radius:10px;padding:10px;text-align:center}
+.pos-item .axis{font-size:11px;color:var(--dim);font-weight:600}
+.pos-item .val{font-size:18px;font-weight:700;margin-top:2px}
+
+.home-all-row{margin-top:12px;display:flex;gap:8px}
+.home-all-btn{flex:1;height:48px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;user-select:none;transition:all .15s}
+.home-all-btn:active{transform:scale(.97)}
+.home-all-btn.secondary{background:var(--s3);color:var(--text)}
+
+/* EXTRUSION TAB */
+.ext-temp-mini{background:var(--s3);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ext-temp-mini .temp{font-size:24px;font-weight:700;color:var(--orange)}
+.ext-temp-mini .temp span{font-size:14px;color:var(--dim)}
+.ext-temp-mini .label{font-size:12px;color:var(--dim)}
+
+.qty-selector{display:flex;gap:8px;margin-bottom:14px}
+.qty-btn{flex:1;height:52px;border-radius:12px;border:2px solid var(--s3);background:transparent;color:var(--text);font-size:15px;font-weight:600;cursor:pointer;user-select:none;transition:all .15s}
+.qty-btn.active{border-color:var(--teal);background:rgba(0,180,156,.1);color:var(--teal)}
+.qty-btn:active{transform:scale(.95)}
+
+.speed-slider-card{margin-bottom:14px}
+.speed-slider-card label{display:flex;justify-content:space-between;font-size:13px;color:var(--dim);margin-bottom:8px}
+.speed-slider-card label strong{color:var(--text)}
+input[type=range]{-webkit-appearance:none;width:100%;height:8px;border-radius:4px;background:var(--s3);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid var(--card)}
+
+.ext-actions{display:flex;gap:10px}
+.ext-btn{flex:1;height:68px;border-radius:14px;border:none;font-size:16px;font-weight:700;cursor:pointer;user-select:none;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.ext-btn:active{transform:scale(.95)}
+.ext-btn.extrude{background:var(--teal);color:#fff}
+.ext-btn.retract{background:var(--s3);color:var(--text)}
+.ext-btn svg{width:20px;height:20px;fill:currentColor}
+
+/* FANS TAB */
+.fan-bar{height:60px;background:var(--s3);border-radius:14px;display:flex;align-items:center;padding:0 20px;margin-bottom:14px;position:relative;cursor:pointer;user-select:none;overflow:hidden}
+.fan-bar-fill{position:absolute;left:0;top:0;bottom:0;border-radius:14px;transition:width .2s}
+.fan-bar-content{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;width:100%}
+.fan-bar-content .fan-icon{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600}
+.fan-bar-content .fan-icon svg{width:24px;height:24px;fill:currentColor}
+.fan-bar-content .fan-pct{font-size:22px;font-weight:700}
+
+.fan-presets{display:flex;gap:8px;margin-bottom:14px}
+.fan-preset-btn{flex:1;height:48px;border-radius:12px;border:none;background:var(--s3);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;user-select:none;transition:all .15s}
+.fan-preset-btn.active{background:var(--teal);color:#fff}
+.fan-preset-btn:active{transform:scale(.95)}
+
+.fan-toggle{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--card);border-radius:var(--radius);margin-bottom:10px}
+.fan-toggle .info{font-size:14px;font-weight:500}
+.fan-toggle .info small{display:block;font-size:11px;color:var(--dim);margin-top:2px}
+.toggle{width:52px;height:28px;border-radius:14px;background:var(--s3);border:none;cursor:pointer;position:relative;transition:background .2s}
+.toggle.on{background:var(--teal)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on::after{transform:translateX(24px)}
+
+/* BOTTOM NAV */
+.bottom-nav{height:62px;background:#10111A;display:flex;border-top:1px solid #1E2038;flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--dim);cursor:pointer;user-select:none}
+.nav-item svg{width:22px;height:22px;fill:currentColor}
+.nav-item.active{color:var(--orange)}
+</style>
+
+<div class="wrapper">
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="left"><span class="dot"></span> <span>Klipper Ready</span></div>
+    <div>🌡 24°C &nbsp; WiFi ▪ 14:32</div>
+  </div>
+
+  <!-- SUB-TAB BAR -->
+  <div class="sub-tabs" id="subTabs">
+    <div class="sub-tab active" data-tab="temp">
+      <svg viewBox="0 0 24 24"><path d="M15 13V5a3 3 0 00-6 0v8a5 5 0 106 0zm-3-11a1 1 0 011 1v9.27a3 3 0 11-2 0V3a1 1 0 011-1z"/></svg>
+      Temperatura
+    </div>
+    <div class="sub-tab" data-tab="move">
+      <svg viewBox="0 0 24 24"><path d="M12 2l4 4h-3v4h4v-3l4 4-4 4v-3h-4v4h3l-4 4-4-4h3v-4H8v3l-4-4 4-4v3h4V6H9l3-4z"/></svg>
+      Movimento
+    </div>
+    <div class="sub-tab" data-tab="extrude">
+      <svg viewBox="0 0 24 24"><path d="M11 2h2v7h3l-4 5-4-5h3V2zm-1 14h4v6h-4v-6zm-5 0h3v6H5v-6zm11 0h3v6h-3v-6z"/></svg>
+      Estrusione
+    </div>
+    <div class="sub-tab" data-tab="fans">
+      <svg viewBox="0 0 24 24"><path d="M12 11a1 1 0 110 2 1 1 0 010-2zm4.22-4.22C18.95 4.05 16.47 2 12 2c-1 4-1 6 1 8 2 2 4 2 8 1-2-4.47-4.05-6.95-4.78-3.22zM2 12c4 1 6 1 8-1s2-4 1-8C4.05 5.78 2 8.47 2 12zm4.78 6.22C4.05 20.95 6.53 22 12 22c1-4 1-6-1-8s-4-2-8-1c2 4.47 4.05 6.95 4.78 3.22zM22 12c-4-1-6-1-8 1s-2 4-1 8c6.95-2.78 9-5.47 9-9z"/></svg>
+      Ventole
+    </div>
+  </div>
+
+  <!-- TEMPERATURA -->
+  <div class="tab-content active" id="tab-temp">
+    <div class="temp-row">
+      <div class="temp-card extruder">
+        <div class="temp-label">
+          <svg viewBox="0 0 24 24" fill="var(--orange)"><path d="M15 13V5a3 3 0 00-6 0v8a5 5 0 106 0z"/></svg>
+          Estrusore
+        </div>
+        <div class="temp-value" style="color:var(--orange)" id="extTemp">24<span>°C</span></div>
+        <div class="temp-target">Target: <span id="extTarget">0</span>°C</div>
+        <div class="temp-controls">
+          <button class="temp-btn minus" onclick="adjTemp('ext',-5)">−</button>
+          <input class="temp-input" id="extInput" value="0" type="number" min="0" max="300">
+          <button class="temp-btn" onclick="adjTemp('ext',5)">+</button>
+        </div>
+      </div>
+      <div class="temp-card bed">
+        <div class="temp-label">
+          <svg viewBox="0 0 24 24" fill="var(--teal)"><rect x="2" y="14" width="20" height="4" rx="2"/><rect x="4" y="10" width="16" height="2" rx="1"/></svg>
+          Piano
+        </div>
+        <div class="temp-value" style="color:var(--teal)" id="bedTemp">23<span>°C</span></div>
+        <div class="temp-target">Target: <span id="bedTarget">0</span>°C</div>
+        <div class="temp-controls">
+          <button class="temp-btn minus" onclick="adjTemp('bed',-5)">−</button>
+          <input class="temp-input" id="bedInput" value="0" type="number" min="0" max="120">
+          <button class="temp-btn" onclick="adjTemp('bed',5)">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">Preset Estrusore</div>
+      <div class="presets" id="extPresets">
+        <button class="preset-btn" data-ext="200" data-bed="60">PLA</button>
+        <button class="preset-btn" data-ext="240" data-bed="80">PETG</button>
+        <button class="preset-btn" data-ext="250" data-bed="100">ABS</button>
+        <button class="preset-btn" data-ext="260" data-bed="100">ASA</button>
+        <button class="preset-btn" data-ext="230" data-bed="50">TPU</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVIMENTO -->
+  <div class="tab-content" id="tab-move">
+    <div class="step-selector" id="stepSelector">
+      <button class="step-btn" data-step="0.1">0.1</button>
+      <button class="step-btn active" data-step="1">1</button>
+      <button class="step-btn" data-step="10">10</button>
+      <button class="step-btn" data-step="100">100</button>
+    </div>
+    <div class="move-grid">
+      <div class="jog-pad">
+        <div class="jog-btn empty"></div>
+        <button class="jog-btn" onclick="jog('Y',1)"><svg viewBox="0 0 24 24"><path d="M12 4l-8 8h16z"/></svg></button>
+        <div class="jog-btn empty"></div>
+        <button class="jog-btn" onclick="jog('X',-1)"><svg viewBox="0 0 24 24"><path d="M4 12l8-8v16z"/></svg></button>
+        <button class="jog-btn home" onclick="homeAxis('XY')">XY</button>
+        <button class="jog-btn" onclick="jog('X',1)"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8V4z"/></svg></button>
+        <div class="jog-btn empty"></div>
+        <button class="jog-btn" onclick="jog('Y',-1)"><svg viewBox="0 0 24 24"><path d="M12 20l8-8H4z"/></svg></button>
+        <div class="jog-btn empty"></div>
+      </div>
+      <div class="z-col">
+        <span class="z-label">Z</span>
+        <button class="z-btn" onclick="jog('Z',1)"><svg viewBox="0 0 24 24"><path d="M12 4l-8 8h16z"/></svg></button>
+        <button class="z-home" onclick="homeAxis('Z')">Home Z</button>
+        <button class="z-btn" onclick="jog('Z',-1)"><svg viewBox="0 0 24 24"><path d="M12 20l8-8H4z"/></svg></button>
+      </div>
+    </div>
+    <div class="pos-card" id="posCard">
+      <div class="pos-item"><div class="axis">X</div><div class="val" id="posX">0.0</div></div>
+      <div class="pos-item"><div class="axis">Y</div><div class="val" id="posY">0.0</div></div>
+      <div class="pos-item"><div class="axis">Z</div><div class="val" id="posZ">0.0</div></div>
+    </div>
+    <div class="home-all-row">
+      <button class="home-all-btn" onclick="homeAxis('ALL')">🏠 Home All</button>
+      <button class="home-all-btn secondary" onclick="disableMotors()">Motors Off</button>
+    </div>
+  </div>
+
+  <!-- ESTRUSIONE -->
+  <div class="tab-content" id="tab-extrude">
+    <div class="ext-temp-mini">
+      <div><div class="label">Estrusore</div><div class="temp" id="extTempMini">24<span>°C</span></div></div>
+      <div style="text-align:right"><div class="label">Target</div><div class="temp" id="extTargetMini" style="color:var(--dim);font-size:18px">0<span>°C</span></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px">Quantità (mm)</div>
+      <div class="qty-selector" id="qtySelector">
+        <button class="qty-btn" data-qty="1">1</button>
+        <button class="qty-btn" data-qty="5">5</button>
+        <button class="qty-btn active" data-qty="10">10</button>
+        <button class="qty-btn" data-qty="25">25</button>
+        <button class="qty-btn" data-qty="50">50</button>
+      </div>
+    </div>
+    <div class="card speed-slider-card">
+      <label>Velocità <strong id="speedVal">5 mm/s</strong></label>
+      <input type="range" min="1" max="25" value="5" id="speedSlider" oninput="document.getElementById('speedVal').textContent=this.value+' mm/s'">
+    </div>
+    <div class="ext-actions">
+      <button class="ext-btn extrude" onclick="doExtrude(1)">
+        <svg viewBox="0 0 24 24"><path d="M12 2l-8 8h5v12h6V10h5z"/></svg>
+        Estrudi
+      </button>
+      <button class="ext-btn retract" onclick="doExtrude(-1)">
+        <svg viewBox="0 0 24 24"><path d="M12 22l8-8h-5V2H9v12H4z"/></svg>
+        Ritira
+      </button>
+    </div>
+  </div>
+
+  <!-- VENTOLE -->
+  <div class="tab-content" id="tab-fans">
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">
+      <div class="fan-bar" id="fanBar">
+        <div class="fan-bar-fill" id="fanFill" style="width:0%;background:var(--teal);opacity:.25"></div>
+        <div class="fan-bar-content">
+          <div class="fan-icon">
+            <svg viewBox="0 0 24 24" id="fanIconSvg"><path d="M12 11a1 1 0 110 2 1 1 0 010-2zm4.22-4.22C18.95 4.05 16.47 2 12 2c-1 4-1 6 1 8 2 2 4 2 8 1-2-4.47-4.05-6.95-4.78-3.22zM2 12c4 1 6 1 8-1s2-4 1-8C4.05 5.78 2 8.47 2 12zm4.78 6.22C4.05 20.95 6.53 22 12 22c1-4 1-6-1-8s-4-2-8-1c2 4.47 4.05 6.95 4.78 3.22zM22 12c-4-1-6-1-8 1s-2 4-1 8c6.95-2.78 9-5.47 9-9z"/></svg>
+            Part Fan
+          </div>
+          <div class="fan-pct" id="fanPct">0%</div>
+        </div>
+      </div>
+    </div>
+    <div class="fan-presets" id="fanPresets">
+      <button class="fan-preset-btn active" data-fan="0">OFF</button>
+      <button class="fan-preset-btn" data-fan="25">25%</button>
+      <button class="fan-preset-btn" data-fan="50">50%</button>
+      <button class="fan-preset-btn" data-fan="75">75%</button>
+      <button class="fan-preset-btn" data-fan="100">100%</button>
+    </div>
+    <div class="fan-toggle">
+      <div class="info">Ventola Hotend<small>Automatica sopra 50°C</small></div>
+      <button class="toggle on" id="toggleHotend" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="fan-toggle">
+      <div class="info">Ventola Controller<small>Automatica sopra 40°C</small></div>
+      <button class="toggle on" id="toggleCtrl" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="fan-toggle">
+      <div class="info">Ventola Filtro<small>Attiva durante stampa ABS/ASA</small></div>
+      <button class="toggle" id="toggleFilter" onclick="this.classList.toggle('on')"></button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Stampa</div>
+    <div class="nav-item active"><svg viewBox="0 0 24 24"><path d="M12 2l4 4h-3v4h4v-3l4 4-4 4v-3h-4v4h3l-4 4-4-4h3v-4H8v3l-4-4 4-4v3h4V6H9l3-4z"/></svg>Controllo</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M19.14 12.94a7.07 7.07 0 000-1.88l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.33a.49.49 0 00-.59-.22l-2.39.96a7.04 7.04 0 00-1.63-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54a7.04 7.04 0 00-1.63.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58a7.07 7.07 0 000 1.88l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.33c.12.22.37.29.59.22l2.39-.96c.5.38 1.04.69 1.63.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54a7.04 7.04 0 001.63-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.33a.49.49 0 00-.12-.61l-2.03-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>Config</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Sistema</div>
+  </div>
+</div>
+
+<script>
+// State
+const state = {
+  extTarget: 0, bedTarget: 0,
+  step: 1,
+  posX: 0, posY: 0, posZ: 0,
+  extQty: 10, extSpeed: 5,
+  fanSpeed: 0
+};
+
+// Sub-tab switching
+document.getElementById('subTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.sub-tab');
+  if (!tab) return;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+});
+
+// Temperature controls
+function adjTemp(which, delta) {
+  const input = document.getElementById(which === 'ext' ? 'extInput' : 'bedInput');
+  let v = Math.max(0, Math.min(which === 'ext' ? 300 : 120, parseInt(input.value || 0) + delta));
+  input.value = v;
+  setTarget(which, v);
+}
+
+function setTarget(which, v) {
+  if (which === 'ext') {
+    state.extTarget = v;
+    document.getElementById('extTarget').textContent = v;
+    document.getElementById('extTargetMini').innerHTML = v + '<span>°C</span>';
+  } else {
+    state.bedTarget = v;
+    document.getElementById('bedTarget').textContent = v;
+  }
+}
+
+document.getElementById('extInput').addEventListener('change', function() {
+  setTarget('ext', Math.max(0, Math.min(300, parseInt(this.value) || 0)));
+});
+document.getElementById('bedInput').addEventListener('change', function() {
+  setTarget('bed', Math.max(0, Math.min(120, parseInt(this.value) || 0)));
+});
+
+// Presets
+document.getElementById('extPresets').addEventListener('click', e => {
+  const btn = e.target.closest('.preset-btn');
+  if (!btn) return;
+  document.querySelectorAll('#extPresets .preset-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const et = parseInt(btn.dataset.ext), bt = parseInt(btn.dataset.bed);
+  document.getElementById('extInput').value = et;
+  document.getElementById('bedInput').value = bt;
+  setTarget('ext', et);
+  setTarget('bed', bt);
+});
+
+// Step selector
+document.getElementById('stepSelector').addEventListener('click', e => {
+  const btn = e.target.closest('.step-btn');
+  if (!btn) return;
+  document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.step = parseFloat(btn.dataset.step);
+});
+
+// Jog
+function jog(axis, dir) {
+  const d = state.step * dir;
+  state['pos' + axis] = Math.round((state['pos' + axis] + d) * 100) / 100;
+  document.getElementById('pos' + axis).textContent = state['pos' + axis].toFixed(1);
+}
+function homeAxis(which) {
+  if (which === 'ALL' || which === 'XY') { state.posX = 0; state.posY = 0; }
+  if (which === 'ALL' || which === 'Z') state.posZ = 0;
+  ['X','Y','Z'].forEach(a => document.getElementById('pos' + a).textContent = state['pos' + a].toFixed(1));
+}
+function disableMotors() {
+  document.querySelectorAll('.pos-item .val').forEach(el => el.textContent = '?.?');
+}
+
+// Extrusion qty
+document.getElementById('qtySelector').addEventListener('click', e => {
+  const btn = e.target.closest('.qty-btn');
+  if (!btn) return;
+  document.querySelectorAll('.qty-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.extQty = parseInt(btn.dataset.qty);
+});
+
+function doExtrude(dir) {
+  const action = dir > 0 ? 'Estrudi' : 'Ritira';
+  const qty = state.extQty;
+  const speed = document.getElementById('speedSlider').value;
+  console.log(`${action}: ${qty}mm @ ${speed}mm/s`);
+}
+
+// Fan bar interactive
+const fanBar = document.getElementById('fanBar');
+function setFan(pct) {
+  pct = Math.max(0, Math.min(100, Math.round(pct)));
+  state.fanSpeed = pct;
+  document.getElementById('fanFill').style.width = pct + '%';
+  document.getElementById('fanPct').textContent = pct + '%';
+  document.querySelectorAll('#fanPresets .fan-preset-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.fan) === pct);
+  });
+  const icon = document.getElementById('fanIconSvg');
+  if (pct > 0) {
+    icon.style.animation = `spin ${Math.max(0.3, 2 - pct/60)}s linear infinite`;
+  } else {
+    icon.style.animation = 'none';
+  }
+}
+
+fanBar.addEventListener('click', e => {
+  const rect = fanBar.getBoundingClientRect();
+  const pct = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+  setFan(pct);
+});
+
+document.getElementById('fanPresets').addEventListener('click', e => {
+  const btn = e.target.closest('.fan-preset-btn');
+  if (!btn) return;
+  setFan(parseInt(btn.dataset.fan));
+});
+
+// Add spin keyframes
+const styleEl = document.createElement('style');
+styleEl.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(styleEl);
+
+// Simulate temperature climb
+setInterval(() => {
+  ['ext','bed'].forEach(w => {
+    const tgt = state[w + 'Target'];
+    const el = document.getElementById(w === 'ext' ? 'extTemp' : 'bedTemp');
+    const cur = parseFloat(el.textContent);
+    let next = cur;
+    if (tgt > cur) next = Math.min(tgt, cur + Math.random() * 3 + 0.5);
+    else if (tgt < cur) next = Math.max(tgt, cur - Math.random() * 2 - 0.3);
+    else if (tgt === 0 && cur > 24) next = Math.max(24, cur - Math.random() * 1.5);
+    next = Math.round(next * 10) / 10;
+    el.innerHTML = Math.round(next) + '<span>°C</span>';
+    if (w === 'ext') document.getElementById('extTempMini').innerHTML = Math.round(next) + '<span>°C</span>';
+  });
+}, 1000);
+</script>

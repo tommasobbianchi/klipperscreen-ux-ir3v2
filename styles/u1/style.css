@@ -1,0 +1,206 @@
+/* u1 — a KlipperScreen theme inspired by the flat/dark tool-changer touchscreen idiom.
+   Original work for the IdeaFormer IR3 V2. Not derived from any vendor firmware.
+   Layered on base.css like every KlipperScreen theme; mirrors material-dark's selector
+   coverage so every screen restyles and nothing is left unstyled. */
+
+@define-color text        #e9ebee;
+@define-color text-dim    #8b9199;
+@define-color bg          #0c0d0f;   /* near-black canvas */
+@define-color buttons-bg  #17191c;   /* card */
+@define-color raised      #202327;   /* raised control */
+
+/* one accent, reserved for the primary action / active state */
+@define-color accent      #2f6fff;
+@define-color accent-dim  #24407a;
+
+/* four distinct tool hues, cool-biased */
+@define-color color1      #2f6fff;
+@define-color color2      #37c871;
+@define-color color3      #f5a623;
+@define-color color4      #8b5cf6;
+
+@define-color echo        #37c871;
+@define-color warning     #f5a623;
+@define-color error       #e5484d;
+
+@define-color active      #2f6fff;
+@define-color active-dark #202327;
+@define-color lines       #2b2f34;
+@define-color slider      #2f6fff;
+
+* {
+    color: @text;
+}
+
+junction,
+list row,
+treeview.view,
+button,
+window {
+    background-color: @bg;
+}
+
+/* filled dark cards, big radius, thin hairline — flat U1 feel */
+button {
+    background-color: @buttons-bg;
+    border: 1px solid @lines;
+    border-radius: .8em;
+}
+
+button.color1 { background-color: @buttons-bg; border-color: @color1; border-radius: .8em; }
+button.color2 { background-color: @buttons-bg; border-color: @color2; border-radius: .8em; }
+button.color3 { background-color: @buttons-bg; border-color: @color3; border-radius: .8em; }
+button.color4 { background-color: @buttons-bg; border-color: @color4; border-radius: .8em; }
+
+.button_active {
+    background-color: @accent-dim;
+    border-width: .18em;
+    border-color: @accent;
+    border-radius: .8em;
+}
+
+.active image,
+button.color1:active,
+button.color2:active,
+button.color3:active,
+button.color4:active,
+button.update:active,
+button.invalid:active,
+.dialog button:active {
+    border-style: solid;
+    border-color: @accent;
+}
+
+button.update,
+button.invalid {
+    background-color: @buttons-bg;
+    border: 0;
+    border-bottom: .3em solid;
+    border-radius: .7em;
+}
+
+button.update  { border-bottom-color: @echo; }
+button.invalid { border-bottom-color: @error; }
+
+menu,
+menuitem,
+combobox button,
+combobox arrow,
+combobox menuitem {
+    background-color: @raised;
+    border-color: @bg;
+}
+
+/* iOS-style toggles: blue when on (the U1 tell) */
+treeview.view check,
+switch {
+    background-color: @raised;
+    border-radius: 1em;
+}
+
+treeview.view check:checked,
+switch:checked {
+    background-color: @accent;
+}
+
+treeview.view check:checked {
+    -gtk-icon-source: url("./styles/u1/images/complete.svg");
+}
+
+entry {
+    background-color: @raised;
+    border-color: @lines;
+    border-radius: .5em;
+}
+
+label { color: @text; }
+
+trough {
+    background-color: @raised;
+    color: @text;
+    border-radius: 1em;
+}
+
+trough highlight,
+trough progress {
+    background-color: @accent;
+    color: @text;
+    border-color: @bg;
+}
+
+scale-mark { color: @text-dim; }
+
+scrollbar,
+scrollbar button,
+scrollbar trough { background-color: @bg; }
+
+scrollbar slider { background-color: @raised; border-radius: 1em; }
+
+textview .time { color: @text-dim; }
+
+.dialog {
+    border: @bg;
+    background-color: @bg;
+    border-radius: 1em;
+}
+
+.dialog button {
+    background-color: @buttons-bg;
+    border-radius: .7em;
+}
+
+.horizontal_togglebuttons {
+    border-color: @bg;
+    background-color: @buttons-bg;
+}
+
+button:active,
+.horizontal_togglebuttons_active,
+button.active {
+    background-color: @accent;
+    border-color: @accent;
+}
+
+.fan_slider { color: @text; }
+
+.message_popup { border-bottom-color: @text; }
+
+.message_popup_echo,
+.message_popup_echo button    { background-color: @echo; }
+.message_popup_warning,
+.message_popup_warning button { background-color: @warning; }
+.message_popup_error,
+.message_popup_error button   { background-color: @error; }
+
+.numpad_key {
+    border-color: @lines;
+    background-color: @buttons-bg;
+    border-radius: .6em;
+}
+
+.printing-status,
+.printing-progress-text,
+.printing-status-label { color: @text; }
+
+.message {
+    border-color: @error;
+    color: @text;
+    background-color: @error;
+}
+
+.message button {
+    background-color: @text;
+    color: @bg;
+}
+
+.warning { background-color: @warning; }
+.error   { background-color: @error; }
+
+.keyboard_pad { background-color: @buttons-bg; }
+
+.dialog-error     { border-bottom-color: @error; }
+.dialog-warning   { border-bottom-color: @warning; }
+.dialog-info      { border-bottom-color: @accent; }
+.dialog-default   { border-bottom-color: @color3; }
+.dialog-secondary { border-bottom-color: @color2; }
+.dialog-primary   { border-bottom-color: @accent; }

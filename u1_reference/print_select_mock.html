@@ -1,0 +1,164 @@
+<title>U1-style print-select — reconstruction</title>
+<style>
+:root{
+  --bg:#0c0d0f; --card:#17191c; --raised:#202327; --line:#2b2f34;
+  --ink:#e9ebee; --muted:#8b9199; --accent:#2f6fff; --accent-ink:#cddcff;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --page:#0a0b0d; --page-ink:#e9ebee; --page-mut:#7b828b;
+}
+@media (prefers-color-scheme:light){:root{--page:#e9ebee;--page-ink:#16191d;--page-mut:#5c636d;}}
+:root[data-theme="light"]{--page:#e9ebee;--page-ink:#16191d;--page-mut:#5c636d;}
+:root[data-theme="dark"]{--page:#0a0b0d;--page-ink:#e9ebee;--page-mut:#7b828b;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--page-ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,48px)}
+.head{margin-bottom:30px;border-bottom:1px solid color-mix(in srgb,var(--page-ink) 14%,transparent);padding-bottom:22px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 9px}
+h1{font-size:clamp(22px,3.4vw,32px);margin:0 0 10px;font-weight:660;letter-spacing:-.02em;text-wrap:balance}
+.sub{color:var(--page-mut);max-width:64ch;margin:0;font-size:15px}
+.stage{display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start;justify-content:center;margin-top:34px}
+.unit{display:flex;flex-direction:column;gap:12px;align-items:center}
+.step{font-family:var(--mono);font-size:12px;color:var(--page-mut);letter-spacing:.04em}
+.step b{color:var(--accent)}
+/* the device screen: real 480x320, shown 2x */
+.screen{width:480px;height:320px;transform:scale(1);transform-origin:top center;
+  background:var(--bg);color:var(--ink);border-radius:16px;overflow:hidden;position:relative;
+  border:1px solid var(--line);box-shadow:0 18px 50px -18px rgba(0,0,0,.7);
+  display:flex;flex-direction:column;font-size:15px}
+@media (min-width:1040px){.screen{transform:scale(1.15)}.unit{margin:0 22px}}
+/* top bar */
+.bar{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:10px;padding:0 12px;
+  border-bottom:1px solid var(--line)}
+.bar .bk{color:var(--muted);font-size:20px;width:22px;text-align:center}
+.bar .ttl{flex:1;text-align:center;font-weight:600;font-size:15px;letter-spacing:-.01em}
+.seg{display:flex;background:var(--raised);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg span{font-size:12px;padding:4px 10px;color:var(--muted)}
+.seg span.on{background:var(--accent);color:#fff}
+.pill{background:var(--accent);color:#fff;font-size:13px;font-weight:600;
+  padding:6px 16px;border-radius:999px}
+.pill.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+/* file list */
+.list{flex:1;overflow:hidden;padding:8px;display:flex;flex-direction:column;gap:7px}
+.row{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  border-radius:11px;padding:8px 10px}
+.row.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.thumb{width:46px;height:46px;flex:0 0 46px;border-radius:8px;position:relative;overflow:hidden;
+  background:radial-gradient(120% 120% at 30% 20%,#2a2e34,#111316)}
+.thumb i{position:absolute;inset:0;display:grid;place-items:center;font-size:22px}
+.meta{flex:1;min-width:0}
+.fname{font-size:14px;font-weight:560;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.finfo{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:3px;margin-top:4px}
+.dot{width:9px;height:9px;border-radius:50%;font-size:0}
+.chev{color:var(--muted);font-size:18px;flex:0 0 auto}
+/* confirm screen */
+.cf{flex:1;display:flex;gap:12px;padding:12px}
+.cf .big{width:150px;flex:0 0 150px;border-radius:12px;background:radial-gradient(130% 130% at 30% 15%,#2a2e34,#101215);
+  display:grid;place-items:center;font-size:70px;position:relative}
+.cf .big .nm{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:11px;color:var(--muted);font-family:var(--mono)}
+.cf .side{flex:1;display:flex;flex-direction:column;gap:8px}
+.slot{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:7px 9px}
+.slot .sw{width:16px;height:16px;border-radius:50%;flex:0 0 16px}
+.slot .mat{font-size:13px;flex:1}
+.slot .g{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.slot .to{font-family:var(--mono);font-size:11px;color:var(--accent-ink);background:var(--raised);
+  border:1px solid var(--line);border-radius:6px;padding:1px 7px}
+.foot{height:52px;flex:0 0 52px;border-top:1px solid var(--line);display:flex;align-items:center;
+  gap:10px;padding:0 12px}
+.foot .est{font-family:var(--mono);font-size:12px;color:var(--muted);flex:1;font-variant-numeric:tabular-nums}
+.note{margin-top:34px;color:var(--page-mut);font-size:13px;max-width:70ch;font-family:var(--mono);
+  border-top:1px solid color-mix(in srgb,var(--page-ink) 14%,transparent);padding-top:16px;line-height:1.7}
+.note b{color:var(--page-ink);font-weight:600}
+</style>
+<div class="wrap">
+  <header class="head">
+    <p class="eyebrow">IR3 V2 · KlipperScreen · reconstruction — not the U1's pixels</p>
+    <h1>Print-select, cloned from the U1 idea</h1>
+    <p class="sub">The U1 never exposes its file browser on camera, and it doesn't need to: the
+      concept is a thumbnail-forward job list that opens a confirm-and-start screen. Rebuilt here
+      in the U1 visual language at the real 480×320, ready to back onto KlipperScreen's
+      <code>gcodes.py</code>.</p>
+  </header>
+
+  <div class="stage">
+    <!-- STATE 1: choose a file -->
+    <div class="unit">
+      <p class="step"><b>1</b> · Choose a file</p>
+      <div class="screen">
+        <div class="bar">
+          <span class="bk">‹</span>
+          <span class="ttl">Print</span>
+          <span class="seg"><span class="on">Local</span><span>USB</span></span>
+        </div>
+        <div class="list">
+          <div class="row sel">
+            <div class="thumb"><i>🐉</i></div>
+            <div class="meta">
+              <div class="fname">Dragon_Textured_PLA.gcode</div>
+              <div class="finfo">2h56m · 4 colours · 31 g</div>
+              <div class="dots">
+                <span class="dot" style="background:#d23b3b"></span>
+                <span class="dot" style="background:#1c1c1c;border:1px solid #444"></span>
+                <span class="dot" style="background:#eee"></span>
+                <span class="dot" style="background:#e8c93a"></span>
+              </div>
+            </div>
+            <span class="chev">›</span>
+          </div>
+          <div class="row">
+            <div class="thumb"><i>⚙️</i></div>
+            <div class="meta">
+              <div class="fname">bracket_v3.gcode</div>
+              <div class="finfo">1h04m · PLA · 12 g</div>
+            </div>
+            <span class="chev">›</span>
+          </div>
+          <div class="row">
+            <div class="thumb"><i>🔩</i></div>
+            <div class="meta">
+              <div class="fname">calibration_cube.gcode</div>
+              <div class="finfo">0h18m · PLA · 3 g</div>
+            </div>
+            <span class="chev">›</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATE 2: confirm & start -->
+    <div class="unit">
+      <p class="step"><b>2</b> · Confirm &amp; start</p>
+      <div class="screen">
+        <div class="bar">
+          <span class="bk">‹</span>
+          <span class="ttl">Filament Setup</span>
+          <span class="pill">Start</span>
+        </div>
+        <div class="cf">
+          <div class="big">🐉<span class="nm">Dragon_Textured</span></div>
+          <div class="side">
+            <div class="slot"><span class="sw" style="background:#d23b3b"></span><span class="mat">PLA</span><span class="g">23.4 g</span><span class="to">T1</span></div>
+            <div class="slot"><span class="sw" style="background:#1c1c1c;border:1px solid #555"></span><span class="mat">PLA</span><span class="g">4.8 g</span><span class="to">T3</span></div>
+            <div class="slot"><span class="sw" style="background:#eee"></span><span class="mat">PLA</span><span class="g">2.8 g</span><span class="to">T2</span></div>
+            <div class="slot"><span class="sw" style="background:#e8c93a"></span><span class="mat">PLA</span><span class="g">12.6 g</span><span class="to">T4</span></div>
+          </div>
+        </div>
+        <div class="foot">
+          <span class="est">⏱ 2h56m · ⛶ flow-calib on</span>
+          <span class="pill ghost">Preview</span>
+          <span class="pill">Start</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="note"><b>The idea, cloned:</b> thumbnail + name + time/material/colour-dots per row ·
+    Local/USB toggle · tap a job → the confirm screen maps each filament to a tool (T1–T4) and shows
+    the estimate · one blue <b>Start</b>. Same dark canvas + single accent as the rest of the set.
+    KlipperScreen's <code>gcodes.py</code> already lists files + thumbnails; this is the restyle,
+    not new plumbing.</p>
+</div>

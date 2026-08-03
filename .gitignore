@@ -1,0 +1,22 @@
+# python / tooling
+__pycache__/
+*.pyc
+.gitnexus/
+graphify-out/
+node_modules/
+
+# device backups (contain third-party KlipperScreen + printer config)
+backups/
+
+# vendor reference captures (Snapmaker wiki / YouTube frames) — kept local only, not redistributed
+u1_reference/*.png
+u1_reference/*.jpg
+u1_reference/*.jpeg
+u1_reference/**/*.png
+u1_reference/**/*.jpg
+u1_reference/**/*.jpeg
+u1_reference/contact_sheet.html
+
+# scratch media
+*.mp4
+*.webm
