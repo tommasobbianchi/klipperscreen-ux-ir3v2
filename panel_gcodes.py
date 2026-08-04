@@ -85,14 +85,28 @@ class Panel(ScreenPanel):
             self.flowbox.set_min_children_per_line(columns)
             self.flowbox.set_max_children_per_line(columns)
 
+        self.item_h = int(self._screen.height * 0.80)
         self.scroll = self._gtk.ScrolledWindow()
-        self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        # u1: one item per screen, paged by up/down buttons — no visible scrollbar
+        self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.EXTERNAL)
         self.scroll.add(self.flowbox)
 
+        up = self._gtk.Button("arrow-up", scale=self.bts)
+        up.connect("clicked", self.nav_up)
+        down = self._gtk.Button("arrow-down", scale=self.bts)
+        down.connect("clicked", self.nav_down)
+        nav = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
+        nav.add(up)
+        nav.add(down)
+
+        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, vexpand=True)
+        body.pack_start(self.scroll, True, True, 0)
+        body.pack_end(nav, False, False, 0)
+
         self.main = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
-        self.main.add(self.headerbox)
+        # u1: no header — one thumbnail per screen, up/down navigation
         self.main.add(self.labels['path'])
-        self.main.add(self.scroll)
+        self.main.add(body)
         self.content.add(self.main)
         self.set_loading(True)
         self._screen._ws.klippy.get_dir_info(self.load_files, self.cur_directory)
@@ -143,62 +157,26 @@ class Panel(ScreenPanel):
         fbchild.set_path(path)
         fbchild.set_name(basename.casefold())
         if self.list_mode:
-            label = Gtk.Label(label=basename, hexpand=True, vexpand=False)
-            format_label(label)
-            info = Gtk.Label(
-                hexpand=True, halign=Gtk.Align.START, xalign=0,
-                wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR,
-            )
-            info.get_style_context().add_class("print-info")
-            info.set_markup(self.get_info_str(item, path))
-            delete = Gtk.Button(hexpand=False, vexpand=False, can_focus=False, always_show_image=True)
-            delete.get_style_context().add_class("color1")
-            delete.set_image(self._gtk.Image("delete", self.list_button_size, self.list_button_size))
-            rename = Gtk.Button(hexpand=False, vexpand=False, can_focus=False, always_show_image=True)
-            rename.get_style_context().add_class("color2")
-            rename.set_image(self._gtk.Image("files", self.list_button_size, self.list_button_size))
             itemname = Gtk.Label(hexpand=True, halign=Gtk.Align.START, ellipsize=Pango.EllipsizeMode.END)
             itemname.get_style_context().add_class("print-filename")
             itemname.set_markup(f"<big><b>{basename}</b></big>")
-            icon = Gtk.Button()
-            row = Gtk.Grid(hexpand=True, vexpand=False, valign=Gtk.Align.CENTER)
+            icon = Gtk.Button(hexpand=True, vexpand=True)
+            row = Gtk.Grid(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER)
             row.get_style_context().add_class("frame-item")
-            if self._screen.width >= 400:
-                row.attach(icon, 0, 0, 1, 2)
-            row.attach(itemname, 1, 0, 3, 1)
-            row.attach(info, 1, 1, 1, 1)
-            row.attach(rename, 2, 1, 1, 1)
-            row.attach(delete, 3, 1, 1, 1)
+            row.attach(icon, 0, 0, 1, 1)
+            row.attach(itemname, 1, 0, 1, 1)
+            imgsize = int(self._screen.height * 0.55)
+            # tap the thumbnail -> print/delete dialog (files) or open (folders)
             if 'filename' in item:
                 icon.connect("clicked", self.confirm_print, path)
-                image_args = (path, icon, self.thumbsize * 1.5, True, "file")
-                delete.connect("clicked", self.confirm_delete_file, f"gcodes/{path}")
-                rename.connect("clicked", self.show_rename, f"gcodes/{path}")
-                action_icon = "printer" if self._printer.extrudercount > 0 else "load"
-                action = self._gtk.Button(action_icon, style="color3")
-                action.connect("clicked", self.confirm_print, path)
-                action.set_hexpand(False)
-                action.set_vexpand(False)
-                action.set_halign(Gtk.Align.END)
-                if self._screen.width >= 400:
-                    row.attach(action, 4, 0, 1, 2)
-                else:
-                    icon.get_style_context().add_class("color3")
-                    row.attach(icon, 4, 0, 1, 2)
+                image_args = (path, icon, imgsize, True, "file")
             elif 'dirname' in item:
                 icon.connect("clicked", self.change_dir, path)
-                image_args = (None, icon, self.thumbsize * 1.5, True, "folder")
-                delete.connect("clicked", self.confirm_delete_directory, path)
-                rename.connect("clicked", self.show_rename, path)
-                action = self._gtk.Button("load", style="color3")
-                action.connect("clicked", self.change_dir, path)
-                action.set_hexpand(False)
-                action.set_vexpand(False)
-                action.set_halign(Gtk.Align.END)
-                row.attach(action, 4, 0, 1, 2)
+                image_args = (None, icon, imgsize, True, "folder")
             else:
                 return
             fbchild.add(row)
+            fbchild.set_size_request(-1, self.item_h)
         else:  # Thumbnail view
             icon = self._gtk.Button(label=basename)
             if 'filename' in item:
@@ -257,6 +235,14 @@ class Panel(ScreenPanel):
             self.change_dir(None, os.path.dirname(self.cur_directory))
             return True
         return False
+
+    def nav_up(self, widget=None):
+        adj = self.scroll.get_vadjustment()
+        adj.set_value(max(adj.get_value() - self.item_h, adj.get_lower()))
+
+    def nav_down(self, widget=None):
+        adj = self.scroll.get_vadjustment()
+        adj.set_value(min(adj.get_value() + self.item_h, adj.get_upper() - adj.get_page_size()))
 
     def change_dir(self, widget=None, directory='gcodes'):
         if directory == '':
