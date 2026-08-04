@@ -205,6 +205,24 @@ button.active {
 .dialog-secondary { border-bottom-color: @color2; }
 .dialog-primary   { border-bottom-color: @accent; }
 
+/* ---- u1 top status bar (base_panel chrome, no left rail) ---- */
+.title_bar {
+    background-color: @bg;
+    border-bottom: 1px solid @lines;
+    padding: 2px 6px;
+    min-height: 44px;
+}
+.title_bar button {
+    background-color: transparent;
+    border: 0;
+    border-radius: .6em;
+    padding: 0 6px;
+    min-width: 0;
+    min-height: 0;
+}
+.title_bar button:active { background-color: @raised; }
+.u1_nav button { min-width: 42px; }
+
 /* ---- u1 Home panel (main_menu reflow) ---- */
 .u1-home { background-color: @bg; padding: 8px; }
 

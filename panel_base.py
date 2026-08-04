@@ -121,10 +121,22 @@ class BasePanel(ScreenPanel):
             self.main_grid.attach(self.action_bar, 0, 2, 1, 1)
             self.action_bar.set_orientation(orientation=Gtk.Orientation.HORIZONTAL)
         else:
-            self.main_grid.attach(self.action_bar, 0, 0, 1, 2)
-            self.action_bar.set_orientation(orientation=Gtk.Orientation.VERTICAL)
-            self.main_grid.attach(self.titlebar, 1, 0, 1, 1)
-            self.main_grid.attach(self.content, 1, 1, 1, 1)
+            # u1 chrome: no left rail. Nav (back/home) sits at the top-left, the
+            # emergency/shortcut controls at the top-right, and content spans the
+            # full width — this is the biggest departure from stock KlipperScreen.
+            for name in ('back', 'home', 'shortcut', 'estop'):
+                if self.control[name].get_parent() is self.action_bar:
+                    self.action_bar.remove(self.control[name])
+            nav = Gtk.Box(spacing=4)
+            nav.get_style_context().add_class('u1_nav')
+            nav.add(self.control['back'])
+            nav.add(self.control['home'])
+            self.titlebar.pack_start(nav, False, False, 0)
+            self.titlebar.reorder_child(nav, 0)
+            self.titlebar.pack_end(self.control['estop'], False, False, 0)
+            self.titlebar.pack_end(self.control['shortcut'], False, False, 0)
+            self.main_grid.attach(self.titlebar, 0, 0, 1, 1)
+            self.main_grid.attach(self.content, 0, 1, 1, 1)
 
         self.update_time()
 
@@ -339,7 +351,7 @@ class BasePanel(ScreenPanel):
     def show_shortcut(self, show=True):
         show = (
             show
-            and self._config.get_main_config().getboolean('side_macro_shortcut', False)
+            and self._config.get_main_config().getboolean('side_macro_shortcut', True)
             and self._printer.get_printer_status_data()["printer"]["gcode_macros"]["count"] > 0
             and self._screen._cur_panels[-1] != 'printer_select'
         )
@@ -411,6 +423,7 @@ class BasePanel(ScreenPanel):
                 self.get_battery_icon(battery.percent, battery.power_plugged)
             )
             self.labels['battery'].set_text(f'{battery.percent:.0f}%')
+            logging.debug(f"Battery: {battery.percent}% Power plugged in: {'Yes' if battery.power_plugged else 'No'}")
             self.control['battery_box'].show()
             return True
         else:
