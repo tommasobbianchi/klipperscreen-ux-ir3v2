@@ -250,3 +250,17 @@ button.u1-start {
     min-width: 150px;
 }
 button.u1-start:active { background-color: @accent-dim; }
+
+/* ---- u1 job control bar: red pause/stop, green resume ---- */
+button.u1-pause, button.u1-stop {
+    background-color: @error;
+    border-color: @error;
+    color: #ffffff;
+}
+button.u1-pause:active, button.u1-stop:active { background-color: #b83a3f; }
+button.u1-resume {
+    background-color: @echo;
+    border-color: @echo;
+    color: #07240f;
+}
+button.u1-resume:active { background-color: #2aa15c; }
