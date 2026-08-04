@@ -72,39 +72,25 @@ class Panel(ScreenPanel):
         self.thumbsize = self._screen.width / 5
         logging.info(f"Thumbsize: {self.thumbsize:.1f}")
 
-        self.flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE,
-                                   column_spacing=0, row_spacing=0)
-        list_mode = self._config.get_main_config().get("print_view", 'list')
-        logging.info(list_mode)
-        self.list_mode = list_mode == 'list'
-        if self.list_mode:
-            self.flowbox.set_min_children_per_line(1)
-            self.flowbox.set_max_children_per_line(1)
-        else:
-            columns = 3 if self._screen.vertical_mode else 4
-            self.flowbox.set_min_children_per_line(columns)
-            self.flowbox.set_max_children_per_line(columns)
-
-        self.item_h = int(self._screen.height * 0.80)
-        self.scroll = self._gtk.ScrolledWindow()
-        # u1: one item per screen, paged by up/down buttons — no visible scrollbar
-        self.scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.EXTERNAL)
-        self.scroll.add(self.flowbox)
+        # u1 pager: exactly one item per page, full width, up/down on the far right
+        self.items = []
+        self.index = 0
+        self.card_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True)
 
         up = self._gtk.Button("arrow-up", scale=self.bts)
         up.connect("clicked", self.nav_up)
         down = self._gtk.Button("arrow-down", scale=self.bts)
         down.connect("clicked", self.nav_down)
-        nav = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
-        nav.add(up)
-        nav.add(down)
+        nav = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=False, vexpand=True,
+                      halign=Gtk.Align.END)
+        nav.pack_start(up, True, True, 0)
+        nav.pack_start(down, True, True, 0)
 
-        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, vexpand=True)
-        body.pack_start(self.scroll, True, True, 0)
+        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, vexpand=True)
+        body.pack_start(self.card_holder, True, True, 0)
         body.pack_end(nav, False, False, 0)
 
         self.main = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=True)
-        # u1: no header — one thumbnail per screen, up/down navigation
         self.main.add(self.labels['path'])
         self.main.add(body)
         self.content.add(self.main)
@@ -157,14 +143,20 @@ class Panel(ScreenPanel):
         fbchild.set_path(path)
         fbchild.set_name(basename.casefold())
         if self.list_mode:
-            itemname = Gtk.Label(hexpand=True, halign=Gtk.Align.START, ellipsize=Pango.EllipsizeMode.END)
+            itemname = Gtk.Label(
+                hexpand=True, halign=Gtk.Align.CENTER, justify=Gtk.Justification.CENTER,
+                wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, lines=2,
+                ellipsize=Pango.EllipsizeMode.END,
+            )
             itemname.get_style_context().add_class("print-filename")
             itemname.set_markup(f"<big><b>{basename}</b></big>")
             icon = Gtk.Button(hexpand=True, vexpand=True)
-            row = Gtk.Grid(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER)
-            row.get_style_context().add_class("frame-item")
-            row.attach(icon, 0, 0, 1, 1)
-            row.attach(itemname, 1, 0, 1, 1)
+            # name UNDER the thumbnail, full width -> room for long names
+            card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True,
+                           valign=Gtk.Align.CENTER)
+            card.get_style_context().add_class("frame-item")
+            card.pack_start(icon, True, True, 0)
+            card.pack_start(itemname, False, False, 0)
             imgsize = int(self._screen.height * 0.55)
             # tap the thumbnail -> print/delete dialog (files) or open (folders)
             if 'filename' in item:
@@ -175,7 +167,7 @@ class Panel(ScreenPanel):
                 image_args = (None, icon, imgsize, True, "folder")
             else:
                 return
-            fbchild.add(row)
+            fbchild.add(card)
             fbchild.set_size_request(-1, self.item_h)
         else:  # Thumbnail view
             icon = self._gtk.Button(label=basename)
@@ -237,12 +229,14 @@ class Panel(ScreenPanel):
         return False
 
     def nav_up(self, widget=None):
-        adj = self.scroll.get_vadjustment()
-        adj.set_value(max(adj.get_value() - self.item_h, adj.get_lower()))
+        if self.items:
+            self.index = (self.index - 1) % len(self.items)
+            self.show_current()
 
     def nav_down(self, widget=None):
-        adj = self.scroll.get_vadjustment()
-        adj.set_value(min(adj.get_value() + self.item_h, adj.get_upper() - adj.get_page_size()))
+        if self.items:
+            self.index = (self.index + 1) % len(self.items)
+            self.show_current()
 
     def change_dir(self, widget=None, directory='gcodes'):
         if directory == '':
@@ -423,44 +417,66 @@ class Panel(ScreenPanel):
         return info
 
     def load_files(self, result, method, params):
-        start = datetime.now()
         self.set_loading(True)
         if not result.get("result") or not isinstance(result["result"], dict):
             logging.info(result)
             return
-        items = [self.create_item(item) for item in [*result["result"]["dirs"], *result["result"]["files"]]]
-        for item in filter(None, items):
-            self.flowbox.add(item)
-        self.set_sort()
+        raw = [*result["result"]["dirs"], *result["result"]["files"]]
+        self.items = [e for e in (self._entry(i) for i in raw) if e]
+        self.items.sort(key=lambda e: (not e["is_dir"], e["name"].casefold()))
+        self.index = 0
         self.set_loading(False)
-        logging.info(f"Loaded in {(datetime.now() - start).total_seconds():.3f} seconds")
+        self.show_current()
+
+    def _entry(self, item):
+        if 'dirname' in item:
+            if item['dirname'].startswith("."):
+                return None
+            name = item['dirname']
+            return {"is_dir": True, "name": name, "basename": name,
+                    "path": f"{self.cur_directory}/{name}"}
+        if 'filename' in item:
+            fn = item['filename']
+            if fn.startswith(".") or os.path.splitext(fn)[1] not in {'.gcode', '.gco', '.g'}:
+                return None
+            path = f"{self.cur_directory}/{fn}".replace('gcodes/', '')
+            return {"is_dir": False, "name": fn, "basename": os.path.splitext(fn)[0], "path": path}
+        return None
+
+    def show_current(self):
+        for child in self.card_holder.get_children():
+            self.card_holder.remove(child)
+        if not self.items:
+            self.card_holder.add(Gtk.Label(label=_("No files"), hexpand=True, vexpand=True))
+            self.card_holder.show_all()
+            return
+        self.index = max(0, min(self.index, len(self.items) - 1))
+        e = self.items[self.index]
+        name = Gtk.Label(hexpand=True, halign=Gtk.Align.CENTER, justify=Gtk.Justification.CENTER,
+                         wrap=True, wrap_mode=Pango.WrapMode.WORD_CHAR, lines=2,
+                         ellipsize=Pango.EllipsizeMode.END)
+        name.get_style_context().add_class("print-filename")
+        name.set_markup(f"<big><b>{e['basename']}</b></big>")
+        icon = Gtk.Button(hexpand=True, vexpand=True)
+        icon.get_style_context().add_class("frame-item")
+        imgsize = int(self._screen.height * 0.6)
+        if e["is_dir"]:
+            icon.connect("clicked", self.change_dir, e["path"])
+            self.image_load(None, icon, imgsize, True, "folder")
+        else:
+            icon.connect("clicked", self.confirm_print, e["path"])
+            self.image_load(e["path"], icon, imgsize, True, "file")
+        self.card_holder.pack_start(icon, True, True, 0)
+        self.card_holder.pack_start(name, False, False, 0)
+        self.card_holder.show_all()
 
     def delete_from_list(self, path):
-        logging.info(f"deleting {path}")
-        for item in self.flowbox.get_children():
-            if item.get_path() in {path, f"gcodes/{path}"}:
-                logging.info("found removing")
-                self.flowbox.remove(item)
-                return True
+        # pager: a file/dir changed -> just reload the current directory
+        self._refresh_files()
+        return True
 
     def add_item_from_callback(self, action, data):
-        item = data['item']
-        if 'source_item' in data:
-            self.delete_from_list(data['source_item']['path'])
-        else:
-            self.delete_from_list(item['path'])
-        path = os.path.join("gcodes", item["path"])
-        if self.cur_directory != os.path.dirname(path):
-            return
-        if action in {"create_dir", "move_dir"}:
-            item.update({"path": path, "dirname": os.path.split(item["path"])[1]})
-        else:
-            item.update({"path": path, "filename": os.path.split(item["path"])[1]})
-        fbchild = self.create_item(item)
-        if fbchild:
-            self.flowbox.add(fbchild)
-            self.flowbox.invalidate_sort()
-            self.flowbox.show_all()
+        self._refresh_files()
 
     def _callback(self, action, data):
         logging.info(f"{action}: {data}")
@@ -478,8 +494,6 @@ class Panel(ScreenPanel):
     def _refresh_files(self, *args):
         logging.info("Refreshing")
         self.set_loading(True)
-        for child in self.flowbox.get_children():
-            self.flowbox.remove(child)
         self._screen._ws.klippy.get_dir_info(self.load_files, self.cur_directory)
 
     def set_loading(self, loading):
