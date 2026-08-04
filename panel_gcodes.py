@@ -390,24 +390,6 @@ class Panel(ScreenPanel):
                 info += f':<b> {datetime.fromtimestamp(fileinfo["modified"]):%Y/%m/%d %I:%M %p}</b>\n'
         if "layer_height" in fileinfo:
             info += _("Layer Height") + f': <b>{fileinfo["layer_height"]}</b> ' + _("mm") + '\n'
-        if "filament_type" in fileinfo or "filament_name" in fileinfo:
-            info += _("Filament") + ':\n'
-        if "filament_type" in fileinfo:
-            info += f'    <b>{fileinfo["filament_type"]}</b>\n'
-        if "filament_name" in fileinfo:
-            info += f'    <b>{fileinfo["filament_name"]}</b>\n'
-        if "filament_weight_total" in fileinfo:
-            info += f'    <b>{fileinfo["filament_weight_total"]:.2f}</b> ' + _("g") + '\n'
-        if "nozzle_diameter" in fileinfo:
-            info += _("Nozzle diameter") + f': <b>{fileinfo["nozzle_diameter"]}</b> ' + _("mm") + '\n'
-        if "slicer" in fileinfo:
-            info += (
-                _("Slicer") +
-                f': <b>{fileinfo["slicer"]} '
-                f'{fileinfo["slicer_version"] if "slicer_version" in fileinfo else ""}</b>\n'
-            )
-        if "size" in fileinfo:
-            info += _("Size") + f': <b>{self.format_size(fileinfo["size"])}</b>\n'
         if "estimated_time" in fileinfo:
             info += _("Estimated Time") + f': <b>{self.format_time(fileinfo["estimated_time"])}</b>\n'
         if "job_id" in fileinfo:
