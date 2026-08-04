@@ -26,11 +26,12 @@ class Panel(ScreenPanel):
         self.add_content()
 
     def add_content(self):
-        for child in self.scroll.get_children():
-            self.scroll.remove(child)
-        self.scroll.add(self.arrangeMenuItems(self.items, 1))
-        if not self.content.get_children():
-            self.content.add(self.scroll)
+        for child in self.content.get_children():
+            self.content.remove(child)
+        grid = self.arrangeMenuItems(self.items, 2)
+        grid.set_vexpand(True)
+        grid.set_hexpand(True)
+        self.content.add(grid)
 
     def arrangeMenuItems(self, items, columns=None, expand_last=False):
         self.autogrid.clear()
@@ -46,7 +47,7 @@ class Panel(ScreenPanel):
 
     def create_menu_items(self):
         count = sum(bool(self.evaluate_enable(i[next(iter(i))]['enable'])) for i in self.items)
-        scale = 1.1 if 12 < count <= 16 else None  # hack to fit a 4th row
+        scale = 1.6 if count <= 6 else (1.1 if 12 < count <= 16 else None)
         for i in range(len(self.items)):
             key = list(self.items[i])[0]
             item = self.items[i][key]
@@ -63,9 +64,7 @@ class Panel(ScreenPanel):
             ):
                 icon = "notification_important"
 
-            b = self._gtk.Button(icon, name, style or "u1-row", scale=scale, position=Gtk.PositionType.LEFT)
-            _c = b.get_child()
-            if _c is not None: _c.set_halign(Gtk.Align.START)
+            b = self._gtk.Button(icon, name, style or "u1-tile", scale=scale)
 
             if item['panel']:
                 b.connect("clicked", self.menu_item_clicked, item)

@@ -283,12 +283,12 @@ button.u1-resume {
 }
 button.u1-resume:active { background-color: #2aa15c; }
 
-/* ---- u1 menu list rows ---- */
-button.u1-row {
+/* ---- u1 menu tiles: few, big, screen-filling (no scroll) ---- */
+button.u1-tile {
     background-color: @buttons-bg;
-    border: 0;
-    border-bottom: 1px solid @lines;
-    border-radius: 0;
-    padding: 12px 18px;
+    border: 1px solid @lines;
+    border-radius: 16px;
+    margin: 6px;
+    font-size: 1.5em;
 }
-button.u1-row:active { background-color: @raised; }
+button.u1-tile:active { background-color: @raised; border-color: @accent; }
