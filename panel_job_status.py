@@ -328,12 +328,13 @@ class Panel(ScreenPanel):
         h = da.get_allocated_height()
         r = min(w, h) * .42
 
-        ctx.set_source_rgb(0.13, 0.13, 0.13)
+        # u1: flat dark track + single blue accent progress arc (#2f6fff)
+        ctx.set_source_rgb(0.17, 0.18, 0.20)
         ctx.set_line_width(self._gtk.font_size * .75)
         ctx.translate(w / 2, h / 2)
         ctx.arc(0, 0, r, 0, 2 * pi)
         ctx.stroke()
-        ctx.set_source_rgb(0.718, 0.110, 0.110)
+        ctx.set_source_rgb(0.184, 0.435, 1.0)
         ctx.arc(0, 0, r, 3 / 2 * pi, 3 / 2 * pi + (self.progress * 2 * pi))
         ctx.stroke()
 
@@ -409,6 +410,8 @@ class Panel(ScreenPanel):
             self._screen._ws.klippy.gcode_script("SAVE_CONFIG")
 
     def restart(self, widget):
+        while self.state == 'cancelling':
+            time.sleep(1)
         if self.filename:
             self.disable_button("restart")
             if self.state == "error":
@@ -420,6 +423,7 @@ class Panel(ScreenPanel):
             logging.info(f"Could not restart {self.filename}")
 
     def resume(self, widget):
+        self.disable_button("pause", "resume")
         self._screen._ws.klippy.print_resume()
         self._screen.show_all()
 
@@ -449,7 +453,7 @@ class Panel(ScreenPanel):
             return
         logging.debug("Canceling print")
         self.set_state("cancelling")
-        self.disable_button("pause", "resume", "cancel")
+        self.disable_button("pause", "resume", "cancel", "restart")
         self._screen._ws.klippy.print_cancel()
 
     def close_panel(self, widget=None):
@@ -468,7 +472,7 @@ class Panel(ScreenPanel):
     def new_print(self):
         self._screen.screensaver.close()
         if "virtual_sdcard" in self._printer.data:
-            logging.info("resetting progress")
+            logging.info("reseting progress")
             self._printer.data["virtual_sdcard"]["progress"] = 0
         self.update_progress(0.0)
         self.set_state("printing")
@@ -595,7 +599,7 @@ class Panel(ScreenPanel):
                         f"{self.labels['total_layers'].get_text()}"
                     )
             if 'total_duration' in data["print_stats"]:
-                self.labels["duration"].set_label(self.format_time(data["print_stats"]["total_duration"]))
+                self.labels["duration"].set_label(self.format_time(data["print_stats"]["print_duration"]))
             if self.state in ["printing", "paused"]:
                 self.update_time_left()
 
