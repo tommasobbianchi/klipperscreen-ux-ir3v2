@@ -32,7 +32,7 @@ class BasePanel(ScreenPanel):
         self.last_usage_report = datetime.now()
         self.usage_report = 0
         # Action bar buttons
-        self.abscale = self.bts * 1.1
+        self.abscale = self.bts * 0.8
         self.control['back'] = self._gtk.Button('back', scale=self.abscale)
         self.control['back'].connect("clicked", self.back)
         self.control['home'] = self._gtk.Button('main', scale=self.abscale)
@@ -137,6 +137,11 @@ class BasePanel(ScreenPanel):
             self.titlebar.pack_end(self.control['shortcut'], False, False, 0)
             self.labels['net'] = self._gtk.Image('network')
             self.titlebar.pack_end(self.labels['net'], False, False, 8)
+            # cap the bar height so its icons don't sit centred in a tall band
+            # (that empty band was the "gap" above the tiles); content takes the rest
+            self.titlebar.set_valign(Gtk.Align.START)
+            self.titlebar.set_vexpand(False)
+            self.titlebar.set_size_request(-1, 54)
             self.main_grid.attach(self.titlebar, 0, 0, 1, 1)
             self.main_grid.attach(self.content, 0, 1, 1, 1)
 

@@ -209,9 +209,11 @@ button.active {
 .title_bar {
     background-color: @bg;
     border-bottom: 1px solid @lines;
-    padding: 2px 6px;
-    min-height: 44px;
+    padding: 0 6px;
+    min-height: 0;
+    font-size: 0.62em;
 }
+.content { margin: 0; }
 .title_bar button {
     background-color: transparent;
     border: 0;
