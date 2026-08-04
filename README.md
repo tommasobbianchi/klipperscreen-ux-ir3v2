@@ -1,4 +1,4 @@
-# klipperscreen-u1-ir3v2
+# klipperscreen-ux-ir3v2
 
 A **U1-idiom KlipperScreen** for the IdeaFormer IR3 V2 belt printer: the flat, dark,
 single-accent touchscreen UX of the Snapmaker U1, reconstructed as **original panel reflows
