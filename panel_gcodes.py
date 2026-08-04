@@ -405,7 +405,8 @@ class Panel(ScreenPanel):
             return
         raw = [*result["result"]["dirs"], *result["result"]["files"]]
         self.items = [e for e in (self._entry(i) for i in raw) if e]
-        self.items.sort(key=lambda e: (not e["is_dir"], e["name"].casefold()))
+        # dirs first, then files newest -> oldest
+        self.items.sort(key=lambda e: (not e["is_dir"], -e["modified"]))
         self.index = 0
         self.set_loading(False)
         self.show_current()
@@ -416,13 +417,14 @@ class Panel(ScreenPanel):
                 return None
             name = item['dirname']
             return {"is_dir": True, "name": name, "basename": name,
-                    "path": f"{self.cur_directory}/{name}"}
+                    "path": f"{self.cur_directory}/{name}", "modified": item.get("modified", 0)}
         if 'filename' in item:
             fn = item['filename']
             if fn.startswith(".") or os.path.splitext(fn)[1] not in {'.gcode', '.gco', '.g'}:
                 return None
             path = f"{self.cur_directory}/{fn}".replace('gcodes/', '')
-            return {"is_dir": False, "name": fn, "basename": os.path.splitext(fn)[0], "path": path}
+            return {"is_dir": False, "name": fn, "basename": os.path.splitext(fn)[0],
+                    "path": path, "modified": item.get("modified", 0)}
         return None
 
     def show_current(self):

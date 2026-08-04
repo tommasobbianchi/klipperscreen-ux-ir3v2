@@ -8,6 +8,7 @@ from gi.repository import Gtk
 from jinja2 import Template
 from ks_includes.screen_panel import ScreenPanel
 from ks_includes.widgets.autogrid import AutoGrid
+from ks_includes.KlippyGtk import find_widget
 
 
 class Panel(ScreenPanel):
@@ -71,6 +72,11 @@ class Panel(ScreenPanel):
             parent.remove(btn)
         btn.set_hexpand(True)
         btn.set_vexpand(True)
+        # scale only enlarges the icon; bump the label too so it isn't tiny on
+        # a full-screen tile (Pango markup wins over the button's inline font)
+        lbl = find_widget(btn, Gtk.Label)
+        if lbl is not None and "<span" not in lbl.get_label():
+            lbl.set_markup(f'<span size="xx-large"><b>{lbl.get_text()}</b></span>')
         self.card_holder.pack_start(btn, True, True, 0)
         self.card_holder.show_all()
 
@@ -96,7 +102,16 @@ class Panel(ScreenPanel):
 
     def create_menu_items(self):
         count = sum(bool(self.evaluate_enable(i[next(iter(i))]['enable'])) for i in self.items)
-        scale = 1.3 if count <= 6 else (1.1 if 12 < count <= 16 else None)
+        # >4 items page one tile per screen -> big icon+text to fill the screen;
+        # 4 or fewer stay a 2x2 grid at the normal tile size
+        if count > 4:
+            scale = 3.0
+        elif count <= 6:
+            scale = 1.3
+        elif 12 < count <= 16:
+            scale = 1.1
+        else:
+            scale = None
         for i in range(len(self.items)):
             key = list(self.items[i])[0]
             item = self.items[i][key]
