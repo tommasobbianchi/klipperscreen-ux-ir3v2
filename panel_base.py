@@ -135,6 +135,8 @@ class BasePanel(ScreenPanel):
             self.titlebar.reorder_child(nav, 0)
             self.titlebar.pack_end(self.control['estop'], False, False, 0)
             self.titlebar.pack_end(self.control['shortcut'], False, False, 0)
+            self.labels['net'] = self._gtk.Image('network')
+            self.titlebar.pack_end(self.labels['net'], False, False, 8)
             self.main_grid.attach(self.titlebar, 0, 0, 1, 1)
             self.main_grid.attach(self.content, 0, 1, 1, 1)
 

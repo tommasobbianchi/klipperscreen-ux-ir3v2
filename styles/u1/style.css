@@ -282,3 +282,13 @@ button.u1-resume {
     color: #07240f;
 }
 button.u1-resume:active { background-color: #2aa15c; }
+
+/* ---- u1 menu list rows ---- */
+button.u1-row {
+    background-color: @buttons-bg;
+    border: 0;
+    border-bottom: 1px solid @lines;
+    border-radius: 0;
+    padding: 12px 18px;
+}
+button.u1-row:active { background-color: @raised; }
