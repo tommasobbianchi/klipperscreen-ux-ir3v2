@@ -28,10 +28,12 @@ class Panel(ScreenPanel):
     def add_content(self):
         for child in self.content.get_children():
             self.content.remove(child)
-        grid = self.arrangeMenuItems(self.items, 2)
+        grid = self.arrangeMenuItems(self.items, 2, True)
         grid.set_vexpand(True)
         grid.set_hexpand(True)
-        self.content.add(grid)
+        grid.set_valign(Gtk.Align.FILL)
+        grid.set_halign(Gtk.Align.FILL)
+        self.content.pack_start(grid, True, True, 0)
 
     def arrangeMenuItems(self, items, columns=None, expand_last=False):
         self.autogrid.clear()
@@ -47,7 +49,7 @@ class Panel(ScreenPanel):
 
     def create_menu_items(self):
         count = sum(bool(self.evaluate_enable(i[next(iter(i))]['enable'])) for i in self.items)
-        scale = 1.6 if count <= 6 else (1.1 if 12 < count <= 16 else None)
+        scale = 1.3 if count <= 6 else (1.1 if 12 < count <= 16 else None)
         for i in range(len(self.items)):
             key = list(self.items[i])[0]
             item = self.items[i][key]

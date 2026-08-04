@@ -288,7 +288,7 @@ button.u1-tile {
     background-color: @buttons-bg;
     border: 1px solid @lines;
     border-radius: 16px;
-    margin: 6px;
-    font-size: 1.5em;
+    margin: 3px;
+    font-size: 1.25em;
 }
 button.u1-tile:active { background-color: @raised; border-color: @accent; }
