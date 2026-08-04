@@ -285,6 +285,10 @@ button.u1-resume {
 }
 button.u1-resume:active { background-color: #2aa15c; }
 
+/* ---- u1 print list: compact aside text so one item fits per screen ---- */
+.print-filename { font-size: 0.9em; }
+.print-info { font-size: 0.62em; }
+
 /* ---- u1 menu tiles: few, big, screen-filling (no scroll) ---- */
 button.u1-tile {
     background-color: @buttons-bg;

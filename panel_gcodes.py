@@ -74,7 +74,7 @@ class Panel(ScreenPanel):
 
         self.flowbox = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE,
                                    column_spacing=0, row_spacing=0)
-        list_mode = self._config.get_main_config().get("print_view", 'thumbs')
+        list_mode = self._config.get_main_config().get("print_view", 'list')
         logging.info(list_mode)
         self.list_mode = list_mode == 'list'
         if self.list_mode:
@@ -171,7 +171,7 @@ class Panel(ScreenPanel):
             row.attach(delete, 3, 1, 1, 1)
             if 'filename' in item:
                 icon.connect("clicked", self.confirm_print, path)
-                image_args = (path, icon, self.thumbsize / 2, True, "file")
+                image_args = (path, icon, self.thumbsize * 1.5, True, "file")
                 delete.connect("clicked", self.confirm_delete_file, f"gcodes/{path}")
                 rename.connect("clicked", self.show_rename, f"gcodes/{path}")
                 action_icon = "printer" if self._printer.extrudercount > 0 else "load"
@@ -187,7 +187,7 @@ class Panel(ScreenPanel):
                     row.attach(icon, 4, 0, 1, 2)
             elif 'dirname' in item:
                 icon.connect("clicked", self.change_dir, path)
-                image_args = (None, icon, self.thumbsize / 2, True, "folder")
+                image_args = (None, icon, self.thumbsize * 1.5, True, "folder")
                 delete.connect("clicked", self.confirm_delete_directory, path)
                 rename.connect("clicked", self.show_rename, path)
                 action = self._gtk.Button("load", style="color3")
