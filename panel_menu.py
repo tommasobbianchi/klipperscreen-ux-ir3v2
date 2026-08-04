@@ -28,12 +28,59 @@ class Panel(ScreenPanel):
     def add_content(self):
         for child in self.content.get_children():
             self.content.remove(child)
-        grid = self.arrangeMenuItems(self.items, 2, True)
-        grid.set_vexpand(True)
-        grid.set_hexpand(True)
-        grid.set_valign(Gtk.Align.FILL)
-        grid.set_halign(Gtk.Align.FILL)
-        self.content.pack_start(grid, True, True, 0)
+        enabled = [
+            self.labels[list(item)[0]]
+            for item in self.items
+            if self.evaluate_enable(item[list(item)[0]]['enable'])
+        ]
+        # u1: menus that fit stay a 2x2 grid; longer menus page one tile per screen
+        if len(enabled) <= 4:
+            grid = self.arrangeMenuItems(self.items, 2, True)
+            grid.set_vexpand(True)
+            grid.set_hexpand(True)
+            grid.set_valign(Gtk.Align.FILL)
+            grid.set_halign(Gtk.Align.FILL)
+            self.content.pack_start(grid, True, True, 0)
+        else:
+            self.add_pager(enabled)
+
+    def add_pager(self, buttons):
+        self.pitems = buttons
+        self.pindex = max(0, min(getattr(self, 'pindex', 0), len(buttons) - 1))
+        self.card_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True)
+        up = self._gtk.Button("arrow-up", scale=self.bts)
+        up.connect("clicked", self.pager_up)
+        down = self._gtk.Button("arrow-down", scale=self.bts)
+        down.connect("clicked", self.pager_down)
+        nav = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=False, vexpand=True,
+                      halign=Gtk.Align.END)
+        nav.pack_start(up, True, True, 0)
+        nav.pack_start(down, True, True, 0)
+        body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, hexpand=True, vexpand=True)
+        body.pack_start(self.card_holder, True, True, 0)
+        body.pack_end(nav, False, False, 0)
+        self.content.pack_start(body, True, True, 0)
+        self.pager_show()
+
+    def pager_show(self):
+        for child in self.card_holder.get_children():
+            self.card_holder.remove(child)
+        btn = self.pitems[self.pindex]
+        parent = btn.get_parent()
+        if parent is not None:
+            parent.remove(btn)
+        btn.set_hexpand(True)
+        btn.set_vexpand(True)
+        self.card_holder.pack_start(btn, True, True, 0)
+        self.card_holder.show_all()
+
+    def pager_up(self, widget=None):
+        self.pindex = (self.pindex - 1) % len(self.pitems)
+        self.pager_show()
+
+    def pager_down(self, widget=None):
+        self.pindex = (self.pindex + 1) % len(self.pitems)
+        self.pager_show()
 
     def arrangeMenuItems(self, items, columns=None, expand_last=False):
         self.autogrid.clear()

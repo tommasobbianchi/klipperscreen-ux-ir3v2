@@ -47,10 +47,23 @@ button {
     border-radius: .8em;
 }
 
-button.color1 { background-color: @buttons-bg; border-color: @color1; border-radius: .8em; }
-button.color2 { background-color: @buttons-bg; border-color: @color2; border-radius: .8em; }
-button.color3 { background-color: @buttons-bg; border-color: @color3; border-radius: .8em; }
-button.color4 { background-color: @buttons-bg; border-color: @color4; border-radius: .8em; }
+/* u1: flat cards, no rainbow borders. A thin bottom accent keeps the axis/
+   function hue in the U1 way (same idiom as the Delete/Print/Cancel dialog). */
+button.color1, button.color2, button.color3, button.color4 {
+    background-color: @buttons-bg;
+    border: 1px solid @lines;
+    border-radius: 16px;
+    margin: 3px;
+}
+button.color1 { border-bottom: 3px solid @color1; }
+button.color2 { border-bottom: 3px solid @color2; }
+button.color3 { border-bottom: 3px solid @color3; }
+button.color4 { border-bottom: 3px solid @color4; }
+button.color1:active, button.color2:active,
+button.color3:active, button.color4:active {
+    background-color: @raised;
+    border-color: @accent;
+}
 
 .button_active {
     background-color: @accent-dim;
