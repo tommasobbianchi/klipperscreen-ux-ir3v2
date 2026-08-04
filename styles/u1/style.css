@@ -309,6 +309,20 @@ button.u1-resume:active { background-color: #2aa15c; }
 .print-filename { font-size: 0.9em; }
 .print-info { font-size: 0.62em; }
 
+/* ---- u1 temperature: heaters as big flat cards (icon+name | temp) ---- */
+.u1-heater-card {
+    background-color: @buttons-bg;
+    border: 1px solid @lines;
+    border-radius: 16px;
+    margin: 4px 3px;
+    padding: 2px 6px;
+}
+.u1-heater-card > button {
+    border: 0;
+    border-radius: 14px;
+}
+.u1-heater-card > button:active { background-color: @raised; }
+
 /* ---- u1 menu tiles: few, big, screen-filling (no scroll) ---- */
 button.u1-tile {
     background-color: @buttons-bg;

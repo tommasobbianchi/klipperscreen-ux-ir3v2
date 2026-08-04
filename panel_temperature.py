@@ -415,12 +415,20 @@ class Panel(ScreenPanel):
             "visible": visible,
         }
 
+        # u1: present each heater as one big flat card (icon + name | temp);
+        # name expands left, current/target sits on the right. Wrapping the
+        # existing buttons keeps numpad / long-press / graph-toggle intact.
+        card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        card.get_style_context().add_class("u1-heater-card")
+        name.set_hexpand(True)
+        card.pack_start(name, True, True, 0)
+        card.pack_end(temp, False, False, 0)
+
         devices = sorted(self.devices)
         pos = devices.index(device) + 1
 
         self.labels["devices"].insert_row(pos)
-        self.labels["devices"].attach(name, 0, pos, 1, 1)
-        self.labels["devices"].attach(temp, 1, pos, 1, 1)
+        self.labels["devices"].attach(card, 0, pos, 2, 1)
         self.labels["devices"].show_all()
         return True
 
@@ -520,7 +528,7 @@ class Panel(ScreenPanel):
         self.labels["devices"].get_style_context().add_class("heater-grid")
 
         name = Gtk.Label()
-        temp = Gtk.Label(_("Temp (°C)"))
+        temp = Gtk.Label()  # u1: cards are self-describing, drop the column header
 
         self.labels["devices"].attach(name, 0, 0, 1, 1)
         self.labels["devices"].attach(temp, 1, 0, 1, 1)
