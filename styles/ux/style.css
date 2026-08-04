@@ -1,4 +1,4 @@
-/* u1 — a KlipperScreen theme inspired by the flat/dark tool-changer touchscreen idiom.
+/* ux — a KlipperScreen theme inspired by the flat/dark tool-changer touchscreen idiom.
    Original work for the IdeaFormer IR3 V2. Not derived from any vendor firmware.
    Layered on base.css like every KlipperScreen theme; mirrors material-dark's selector
    coverage so every screen restyles and nothing is left unstyled. */
@@ -47,7 +47,7 @@ button {
     border-radius: .8em;
 }
 
-/* u1: flat cards, no rainbow borders. A thin bottom accent keeps the axis/
+/* ux: flat cards, no rainbow borders. A thin bottom accent keeps the axis/
    function hue in the U1 way (same idiom as the Delete/Print/Cancel dialog). */
 button.color1, button.color2, button.color3, button.color4 {
     background-color: @buttons-bg;
@@ -117,7 +117,7 @@ switch:checked {
 }
 
 treeview.view check:checked {
-    -gtk-icon-source: url("./styles/u1/images/complete.svg");
+    -gtk-icon-source: url("./styles/ux/images/complete.svg");
 }
 
 entry {
@@ -218,7 +218,7 @@ button.active {
 .dialog-secondary { border-bottom-color: @color2; }
 .dialog-primary   { border-bottom-color: @accent; }
 
-/* ---- u1 top status bar (base_panel chrome, no left rail) ---- */
+/* ---- ux top status bar (base_panel chrome, no left rail) ---- */
 .title_bar {
     background-color: @bg;
     border-bottom: 1px solid @lines;
@@ -236,31 +236,31 @@ button.active {
     min-height: 0;
 }
 .title_bar button:active { background-color: @raised; }
-.u1_nav button { min-width: 42px; }
+.ux_nav button { min-width: 42px; }
 
-/* ---- u1 Home panel (main_menu reflow) ---- */
-.u1-home { background-color: @bg; padding: 8px; }
+/* ---- ux Home panel (main_menu reflow) ---- */
+.ux-home { background-color: @bg; padding: 8px; }
 
-button.u1-icon {
+button.ux-icon {
     min-width: 96px;
     min-height: 96px;
     background-color: @buttons-bg;
     border: 1px solid @lines;
     border-radius: 18px;
 }
-button.u1-icon:active { background-color: @raised; border-color: @accent; }
+button.ux-icon:active { background-color: @raised; border-color: @accent; }
 
-.u1-card {
+.ux-card {
     background-color: @buttons-bg;
     border: 1px solid @lines;
     border-radius: 18px;
     padding: 14px;
 }
 
-.u1-msg { color: @text; font-size: 1.3em; }
-.u1-tool-label { color: @text-dim; font-size: 0.85em; }
+.ux-msg { color: @text; font-size: 1.3em; }
+.ux-tool-label { color: @text-dim; font-size: 0.85em; }
 
-button.u1-chip {
+button.ux-chip {
     min-width: 58px;
     min-height: 58px;
     border-radius: 29px;
@@ -270,9 +270,9 @@ button.u1-chip {
     font-weight: bold;
     font-size: 1.2em;
 }
-button.u1-chip:active { background-color: @accent-dim; }
+button.ux-chip:active { background-color: @accent-dim; }
 
-button.u1-start {
+button.ux-start {
     background-color: @accent;
     color: #ffffff;
     border: 0;
@@ -282,53 +282,53 @@ button.u1-start {
     font-size: 1.15em;
     min-width: 150px;
 }
-button.u1-start:active { background-color: @accent-dim; }
+button.ux-start:active { background-color: @accent-dim; }
 
-/* ---- u1 job control bar: red pause/stop, green resume ---- */
-button.u1-pause, button.u1-stop {
+/* ---- ux job control bar: red pause/stop, green resume ---- */
+button.ux-pause, button.ux-stop {
     background-color: @error;
     border-color: @error;
     color: #ffffff;
 }
-button.u1-pause:active, button.u1-stop:active { background-color: #b83a3f; }
-button.u1-resume {
+button.ux-pause:active, button.ux-stop:active { background-color: #b83a3f; }
+button.ux-resume {
     background-color: @echo;
     border-color: @echo;
     color: #07240f;
 }
-button.u1-resume:active { background-color: #2aa15c; }
+button.ux-resume:active { background-color: #2aa15c; }
 
-/* ---- u1: slimmer distance/speed selector buttons (reclaims vertical space
+/* ---- ux: slimmer distance/speed selector buttons (reclaims vertical space
        on the move + extrude panels so nothing clips) ---- */
 .horizontal_togglebuttons {
     min-height: 0;
     padding: 4px 0;
 }
 
-/* ---- u1 print list: compact aside text so one item fits per screen ---- */
+/* ---- ux print list: compact aside text so one item fits per screen ---- */
 .print-filename { font-size: 0.9em; }
 .print-info { font-size: 0.62em; }
 
-/* ---- u1 temperature: heaters as big flat cards (icon+name | temp) ---- */
-.u1-heater-card {
+/* ---- ux temperature: heaters as big flat cards (icon+name | temp) ---- */
+.ux-heater-card {
     background-color: @buttons-bg;
     border: 1px solid @lines;
     border-radius: 16px;
     margin: 4px 3px;
     padding: 2px 6px;
 }
-.u1-heater-card > button {
+.ux-heater-card > button {
     border: 0;
     border-radius: 14px;
 }
-.u1-heater-card > button:active { background-color: @raised; }
+.ux-heater-card > button:active { background-color: @raised; }
 
-/* ---- u1 menu tiles: few, big, screen-filling (no scroll) ---- */
-button.u1-tile {
+/* ---- ux menu tiles: few, big, screen-filling (no scroll) ---- */
+button.ux-tile {
     background-color: @buttons-bg;
     border: 1px solid @lines;
     border-radius: 16px;
     margin: 3px;
     font-size: 1.25em;
 }
-button.u1-tile:active { background-color: @raised; border-color: @accent; }
+button.ux-tile:active { background-color: @raised; border-color: @accent; }

@@ -328,7 +328,7 @@ class Panel(ScreenPanel):
         h = da.get_allocated_height()
         r = min(w, h) * .42
 
-        # u1: flat dark track + single blue accent progress arc (#2f6fff)
+        # ux: flat dark track + single blue accent progress arc (#2f6fff)
         ctx.set_source_rgb(0.17, 0.18, 0.20)
         ctx.set_line_width(self._gtk.font_size * .75)
         ctx.translate(w / 2, h / 2)
@@ -375,8 +375,8 @@ class Panel(ScreenPanel):
         self.buttons['resume'].connect("clicked", self.resume)
         self.buttons['save_offset_probe'].connect("clicked", self.save_offset, "probe")
         self.buttons['save_offset_endstop'].connect("clicked", self.save_offset, "endstop")
-        # u1 control bar: red pause/stop, green resume (matches the U1 job screen)
-        for _b, _cls in (("pause", "u1-pause"), ("cancel", "u1-stop"), ("resume", "u1-resume")):
+        # ux control bar: red pause/stop, green resume (matches the U1 job screen)
+        for _b, _cls in (("pause", "ux-pause"), ("cancel", "ux-stop"), ("resume", "ux-resume")):
             self.buttons[_b].get_style_context().add_class(_cls)
 
     def save_offset(self, widget, device):
@@ -738,7 +738,7 @@ class Panel(ScreenPanel):
         self.buttons['button_grid'].remove_row(0)
         self.buttons['button_grid'].insert_row(0)
         if self.state == "printing":
-            # u1 order: more | tune | pause | stop  (destructive red pair on the right)
+            # ux order: more | tune | pause | stop  (destructive red pair on the right)
             self.buttons['button_grid'].attach(self.buttons['control'], 0, 0, 1, 1)
             self.buttons['button_grid'].attach(self.buttons['fine_tune'], 1, 0, 1, 1)
             self.buttons['button_grid'].attach(self.buttons['pause'], 2, 0, 1, 1)

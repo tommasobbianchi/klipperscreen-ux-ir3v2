@@ -1,4 +1,4 @@
-# u1 — KlipperScreen theme (IdeaFormer IR3 V2)
+# ux — KlipperScreen theme (IdeaFormer IR3 V2)
 
 A dark, flat, single-accent KlipperScreen theme in the visual idiom of modern tool-changer
 touchscreens: near-black canvas, rounded filled cards, one blue accent (`#2f6fff`) for the
@@ -11,7 +11,7 @@ spirit, not identical."
   so every screen restyles).
 - `style.conf` — graph colours.
 - `install.sh` — seeds `images/` from the stock `material-dark` theme, overlays these files, and
-  flips `theme = u1` **surgically** in `KlipperScreen.conf` (touches nothing else).
+  flips `theme = ux` **surgically** in `KlipperScreen.conf` (touches nothing else).
 
 ## Install (device)
 ```bash

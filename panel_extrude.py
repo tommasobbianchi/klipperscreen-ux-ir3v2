@@ -36,7 +36,7 @@ class Panel(ScreenPanel):
                     self.speeds = vel
         self.distance = int(self.distances[1])
         self.speed = int(self.speeds[1])
-        # u1: smaller icons (0.7x) so the button rows leave room for the
+        # ux: smaller icons (0.7x) so the button rows leave room for the
         # distance/speed selectors and the filament-sensor row (no clipping)
         es = 0.7
         self.buttons = {
@@ -89,7 +89,7 @@ class Panel(ScreenPanel):
             label = find_widget(widget, Gtk.Label)
             label.set_justify(Gtk.Justification.CENTER)
             label.set_line_wrap(True)
-            # u1: single extruder shows just a temp -> 1 line keeps the row short
+            # ux: single extruder shows just a temp -> 1 line keeps the row short
             # (2 lines only needed for multi-tool T0/T1 names), freeing the sensor row
             label.set_lines(1 if self._printer.extrudercount == 1 else 2)
         if extruder_buttons:
@@ -139,7 +139,7 @@ class Panel(ScreenPanel):
                 ctx.add_class("horizontal_togglebuttons_active")
             speedgrid.attach(self.labels[f"speed{i}"], j, 0, 1, 1)
 
-        # u1: compact single-line captions instead of a full label row, so the
+        # ux: compact single-line captions instead of a full label row, so the
         # filament-sensor row is fully on-screen (no clipping)
         distbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.labels['extrude_dist'] = Gtk.Label()

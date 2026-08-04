@@ -34,7 +34,7 @@ class Panel(ScreenPanel):
             for item in self.items
             if self.evaluate_enable(item[list(item)[0]]['enable'])
         ]
-        # u1: menus that fit stay a 2x2 grid; longer menus page one tile per screen
+        # ux: menus that fit stay a 2x2 grid; longer menus page one tile per screen
         if len(enabled) <= 4:
             grid = self.arrangeMenuItems(self.items, 2, True)
             grid.set_vexpand(True)
@@ -128,7 +128,7 @@ class Panel(ScreenPanel):
             ):
                 icon = "notification_important"
 
-            b = self._gtk.Button(icon, name, style or "u1-tile", scale=scale)
+            b = self._gtk.Button(icon, name, style or "ux-tile", scale=scale)
 
             if item['panel']:
                 b.connect("clicked", self.menu_item_clicked, item)

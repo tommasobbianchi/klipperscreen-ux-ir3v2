@@ -121,14 +121,14 @@ class BasePanel(ScreenPanel):
             self.main_grid.attach(self.action_bar, 0, 2, 1, 1)
             self.action_bar.set_orientation(orientation=Gtk.Orientation.HORIZONTAL)
         else:
-            # u1 chrome: no left rail. Nav (back/home) sits at the top-left, the
+            # ux chrome: no left rail. Nav (back/home) sits at the top-left, the
             # emergency/shortcut controls at the top-right, and content spans the
             # full width — this is the biggest departure from stock KlipperScreen.
             for name in ('back', 'home', 'shortcut', 'estop'):
                 if self.control[name].get_parent() is self.action_bar:
                     self.action_bar.remove(self.control[name])
             nav = Gtk.Box(spacing=4)
-            nav.get_style_context().add_class('u1_nav')
+            nav.get_style_context().add_class('ux_nav')
             nav.add(self.control['back'])
             nav.add(self.control['home'])
             self.titlebar.pack_start(nav, False, False, 0)

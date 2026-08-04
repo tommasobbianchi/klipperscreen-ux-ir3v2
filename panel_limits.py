@@ -48,7 +48,7 @@ class Panel(ScreenPanel):
         for opt in self.options:
             self.add_option(opt)
 
-        # u1 pager: one limit per screen, up/down on the far right (no scroll)
+        # ux pager: one limit per screen, up/down on the far right (no scroll)
         self.order = [o['option'] for o in self.options]
         self.index = 0
         self.card_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True,

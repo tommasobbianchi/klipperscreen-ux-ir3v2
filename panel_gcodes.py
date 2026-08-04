@@ -72,7 +72,7 @@ class Panel(ScreenPanel):
         self.thumbsize = self._screen.width / 5
         logging.info(f"Thumbsize: {self.thumbsize:.1f}")
 
-        # u1 pager: exactly one item per page, full width, up/down on the far right
+        # ux pager: exactly one item per page, full width, up/down on the far right
         self.items = []
         self.index = 0
         self.card_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True)

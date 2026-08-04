@@ -27,7 +27,7 @@ class Panel(ScreenPanel):
 
         self.settings = {}
         self.menu.append("move_menu")
-        # u1: smaller icons (0.7x) keep the jog cross short enough that the
+        # ux: smaller icons (0.7x) keep the jog cross short enough that the
         # distance selector fits on-screen at the +50% font
         js = 0.7
         self.buttons = {
@@ -115,12 +115,12 @@ class Panel(ScreenPanel):
         bottomgrid.attach(self.labels["pos_x"], 0, 0, 1, 1)
         bottomgrid.attach(self.labels["pos_y"], 1, 0, 1, 1)
         bottomgrid.attach(self.labels["pos_z"], 2, 0, 1, 1)
-        # u1: drop the redundant "Move Distance (mm)" label row to make room for
+        # ux: drop the redundant "Move Distance (mm)" label row to make room for
         # the distance selector (the .1/.5/1/5… buttons are self-explanatory)
         if not self._screen.vertical_mode:
             bottomgrid.attach(adjust, 3, 0, 1, 1)
 
-        # u1: pack rows to natural height (no row eats slack) so the distance
+        # ux: pack rows to natural height (no row eats slack) so the distance
         # selector can't get clipped at the +50% font (was row_homogeneous)
         grid.set_vexpand(False)
         bottomgrid.set_vexpand(False)

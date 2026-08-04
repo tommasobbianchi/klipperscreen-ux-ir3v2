@@ -77,7 +77,7 @@ class Panel(ScreenPanel):
         sbox.add(self.reload_button)
         sbox.add(self.wifi_toggle)
 
-        # ---- u1 pager: exactly one network per page, up/down on the far right ----
+        # ---- ux pager: exactly one network per page, up/down on the far right ----
         self.items = []
         self.index = 0
         self.card_holder = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, hexpand=True, vexpand=True)
