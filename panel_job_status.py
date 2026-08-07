@@ -130,8 +130,12 @@ class Panel(ScreenPanel):
 
         self.buttons = {}
         self.create_buttons()
-        self.buttons['button_grid'] = Gtk.Grid(row_homogeneous=True, column_homogeneous=True, vexpand=False)
-        self.grid.attach(self.buttons['button_grid'], 0, 3, 4, 1)
+        # ux: the control bar lives OUTSIDE self.grid. self.grid is column_homogeneous, so
+        # every column is as wide as the widest one — the progress ring asks for font_size*5 —
+        # and the grid's minimum can exceed the content width. Anything attached to it then
+        # overflows to the right, which is what put pause/stop out of reach. A homogeneous box
+        # packed under the grid is allocated exactly the content width, so all four always fit.
+        self.buttons['button_bar'] = Gtk.Box(homogeneous=True, spacing=4, vexpand=False)
 
         self.create_status_grid()
         self.create_extrusion_grid()
@@ -139,7 +143,10 @@ class Panel(ScreenPanel):
         self.create_move_grid()
         self.grid.attach(self.labels['info_grid'], 0, 1, 4, 2)
         self.switch_info(info=self.status_grid)
-        self.content.add(self.grid)
+        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        outer.pack_start(self.grid, True, True, 0)
+        outer.pack_end(self.buttons['button_bar'], False, False, 0)
+        self.content.add(outer)
 
     def create_status_grid(self, widget=None):
         buttons = {
@@ -354,14 +361,19 @@ class Panel(ScreenPanel):
 
     def create_buttons(self):
 
+        # ux: the four print-bar actions are icon-only (the U1 idiom: tune · pause · stop).
+        # Dropping the labels also drops their width demand, which is what pushed pause/stop
+        # off the right edge. scale=0.7 counters KlippyGtk's 1.4x bump for label-less buttons,
+        # so the icon lands slightly *smaller* than a labelled one instead of 40% larger.
+        bar_scale = 0.7
         self.buttons = {
-            'cancel': self._gtk.Button("stop", _("Cancel"), "color2"),
-            'control': self._gtk.Button("settings", _("Settings"), "color3"),
-            'fine_tune': self._gtk.Button("fine-tune", _("Fine Tuning"), "color4"),
+            'cancel': self._gtk.Button("stop", None, "color2", bar_scale),
+            'control': self._gtk.Button("settings", None, "color3", bar_scale),
+            'fine_tune': self._gtk.Button("fine-tune", None, "color4", bar_scale),
             'menu': self._gtk.Button("complete", _("Main Menu"), "color4"),
-            'pause': self._gtk.Button("pause", _("Pause"), "color1"),
+            'pause': self._gtk.Button("pause", None, "color1", bar_scale),
             'restart': self._gtk.Button("refresh", _("Restart"), "color3"),
-            'resume': self._gtk.Button("resume", _("Resume"), "color1"),
+            'resume': self._gtk.Button("resume", None, "color1", bar_scale),
             'save_offset_probe': self._gtk.Button("home-z", _("Save Z") + "\n" + "Probe", "color1"),
             'save_offset_endstop': self._gtk.Button("home-z", _("Save Z") + "\n" + "Endstop", "color2"),
         }
@@ -378,6 +390,11 @@ class Panel(ScreenPanel):
         # ux control bar: red pause/stop, green resume (matches the U1 job screen)
         for _b, _cls in (("pause", "ux-pause"), ("cancel", "ux-stop"), ("resume", "ux-resume")):
             self.buttons[_b].get_style_context().add_class(_cls)
+        # icon-only buttons carry no visible text: name them for a11y / long-press tooltips
+        for _b, _tip in (("control", _("Settings")), ("fine_tune", _("Fine Tuning")),
+                         ("pause", _("Pause")), ("resume", _("Resume")), ("cancel", _("Cancel"))):
+            self.buttons[_b].set_tooltip_text(_tip)
+            self.buttons[_b].get_accessible().set_name(_tip)
 
     def save_offset(self, widget, device):
         sign = "+" if self.zoffset > 0 else "-"
@@ -735,46 +752,36 @@ class Panel(ScreenPanel):
             GLib.timeout_add_seconds(timeout, self.close_panel)
 
     def show_buttons_for_state(self):
-        self.buttons['button_grid'].remove_row(0)
-        self.buttons['button_grid'].insert_row(0)
+        bar = self.buttons['button_bar']
+        for child in bar.get_children():
+            bar.remove(child)
         if self.state == "printing":
             # ux order: more | tune | pause | stop  (destructive red pair on the right)
-            self.buttons['button_grid'].attach(self.buttons['control'], 0, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['fine_tune'], 1, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['pause'], 2, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['cancel'], 3, 0, 1, 1)
+            for name in ("control", "fine_tune", "pause", "cancel"):
+                bar.add(self.buttons[name])
             self.enable_button("pause", "cancel")
             self.can_close = False
         elif self.state == "paused":
-            self.buttons['button_grid'].attach(self.buttons['control'], 0, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['fine_tune'], 1, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['resume'], 2, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['cancel'], 3, 0, 1, 1)
+            for name in ("control", "fine_tune", "resume", "cancel"):
+                bar.add(self.buttons[name])
             self.enable_button("resume", "cancel")
             self.can_close = False
         else:
             offset = self._printer.get_stat("gcode_move", "homing_origin")
             self.zoffset = float(offset[2]) if offset else 0
+            # a box needs no placeholders — fewer buttons just means wider ones
             if self.zoffset != 0:
                 if "Z_OFFSET_APPLY_ENDSTOP" in self._printer.available_commands:
-                    self.buttons['button_grid'].attach(self.buttons["save_offset_endstop"], 0, 0, 1, 1)
-                else:
-                    self.buttons['button_grid'].attach(Gtk.Label(), 0, 0, 1, 1)
+                    bar.add(self.buttons["save_offset_endstop"])
                 if "Z_OFFSET_APPLY_PROBE" in self._printer.available_commands:
-                    self.buttons['button_grid'].attach(self.buttons["save_offset_probe"], 1, 0, 1, 1)
-                else:
-                    self.buttons['button_grid'].attach(Gtk.Label(), 1, 0, 1, 1)
-            else:
-                self.buttons['button_grid'].attach(Gtk.Label(), 0, 0, 1, 1)
-                self.buttons['button_grid'].attach(Gtk.Label(), 1, 0, 1, 1)
-
+                    bar.add(self.buttons["save_offset_probe"])
             if self.filename:
-                self.buttons['button_grid'].attach(self.buttons['restart'], 2, 0, 1, 1)
+                bar.add(self.buttons['restart'])
                 self.enable_button("restart")
             else:
                 self.disable_button("restart")
             if self.state != "cancelling":
-                self.buttons['button_grid'].attach(self.buttons['menu'], 3, 0, 1, 1)
+                bar.add(self.buttons['menu'])
                 self.can_close = True
         self.content.show_all()
 

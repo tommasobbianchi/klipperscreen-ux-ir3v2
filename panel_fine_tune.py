@@ -128,9 +128,16 @@ class Panel(ScreenPanel):
                 self.labels['speedfactor'].set_label(f"  {self.speed:3}%")
 
     def change_babystepping(self, widget, direction):
+        # Belt-printer axis mapping: the operator's "Z offset" (nozzle-to-belt standoff) is the
+        # machine's *Y* gcode offset on the IR3 V2 — its own printer.cfg babysteps with
+        # Y_Offset_UP/DOWN -> SET_GCODE_OFFSET Y_ADJUST, and the belt fork's stock panel does the
+        # same. The buttons stay labelled Z+/Z- because that is the operator's mental model.
+        # Do not "correct" this to Z_ADJUST: on this corexy belt machine that tilts the gantry
+        # along the incline instead of changing the first-layer standoff.
         if direction == "reset":
             self.labels['zoffset'].set_label('  0.00mm')
-            self._screen._send_action(widget, "printer.gcode.script", {"script": "SET_GCODE_OFFSET Z=0 MOVE=1"})
+            self.z_offset = 0.0
+            self._screen._send_action(widget, "printer.gcode.script", {"script": "SET_GCODE_OFFSET Y=0 MOVE=1"})
             return
         elif direction == "+":
             self.z_offset += float(self.z_delta)
@@ -138,7 +145,7 @@ class Panel(ScreenPanel):
             self.z_offset -= float(self.z_delta)
         self.labels['zoffset'].set_label(f'  {self.z_offset:.3f}mm')
         self._screen._send_action(widget, "printer.gcode.script",
-                                  {"script": f"SET_GCODE_OFFSET Z_ADJUST={direction}{self.z_delta} MOVE=1"})
+                                  {"script": f"SET_GCODE_OFFSET Y_ADJUST={direction}{self.z_delta} MOVE=1"})
 
     def change_extrusion(self, widget, direction):
         if direction == "+":
