@@ -130,11 +130,12 @@ class Panel(ScreenPanel):
 
         self.buttons = {}
         self.create_buttons()
-        # ux: the control bar lives OUTSIDE self.grid. self.grid is column_homogeneous, so
-        # every column is as wide as the widest one — the progress ring asks for font_size*5 —
-        # and the grid's minimum can exceed the content width. Anything attached to it then
-        # overflows to the right, which is what put pause/stop out of reach. A homogeneous box
-        # packed under the grid is allocated exactly the content width, so all four always fit.
+        # ux: the control bar lives OUTSIDE self.grid. As row 3 of that grid it competed with
+        # the progress ring and the 5-row info grid for height: on the IR3 V2's 800x480 panel
+        # the grid needed 429px of the 425px content box, so the bar landed at y=336..429 and
+        # its bottom fell off-screen — the print controls were unreachable mid-print.
+        # pack_end'ing it into a vertical box reserves its height at the bottom first and lets
+        # the grid absorb the squeeze (391px total, 34px spare). See test_control_bar.py.
         self.buttons['button_bar'] = Gtk.Box(homogeneous=True, spacing=4, vexpand=False)
 
         self.create_status_grid()
@@ -362,9 +363,9 @@ class Panel(ScreenPanel):
     def create_buttons(self):
 
         # ux: the four print-bar actions are icon-only (the U1 idiom: tune · pause · stop).
-        # Dropping the labels also drops their width demand, which is what pushed pause/stop
-        # off the right edge. scale=0.7 counters KlippyGtk's 1.4x bump for label-less buttons,
-        # so the icon lands slightly *smaller* than a labelled one instead of 40% larger.
+        # Dropping the two-line labels shrinks the bar on both axes — height is what actually
+        # clipped it. scale=0.7 counters KlippyGtk's 1.4x bump for label-less buttons, so the
+        # icon lands slightly *smaller* than a labelled one instead of 40% larger.
         bar_scale = 0.7
         self.buttons = {
             'cancel': self._gtk.Button("stop", None, "color2", bar_scale),

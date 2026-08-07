@@ -67,8 +67,12 @@ xvfb-run -a python3 test_control_bar.py
 ```
 
 Measures the job-status control bar with real GTK geometry at the panel's font metrics and
-fails if any of the four print actions would be pushed off-screen. Guards the fix for
-pause/stop being unreachable mid-print.
+fails if any of the four print actions would fall outside the content box. As row 3 of the
+job grid the bar needed 429px of the IR3 V2's 425px content height and its bottom was cut
+off; packed in its own box it needs 391px, with the bar fully inside at y=370..425.
+
+Panels under 480px tall still overflow — the 5-row info grid alone exceeds the content box
+there, independent of the bar. Not addressed; the IR3 V2 is 800x480.
 
 ## Revert
 

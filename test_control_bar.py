@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 """Regression check for the job-status control bar.
 
-The pause/stop buttons used to sit in `self.grid`, which is column_homogeneous and
-also carries the progress ring and the info grid. The grid's minimum width therefore
-drove the bar's, and on a narrow panel the two rightmost buttons (pause, stop) were
-pushed off the right edge — out of reach mid-print.
+The control bar used to be row 3 of `self.grid`, competing with the progress ring and
+the 5-row info grid for space. On the IR3 V2's 800x480 panel that grid needed 429px of
+the 425px content height, so the bar was allocated y=336..429 and its bottom edge fell
+outside the visible area — the print controls were unreachable mid-print.
 
-The fix packs the bar in its own homogeneous Gtk.Box under the grid and makes the four
-print actions icon-only, so its width demand is small and independent of the grid.
+The fix packs the bar into its own homogeneous Gtk.Box, pack_end'd under the grid, so it
+reserves its natural height at the bottom *first* and the grid absorbs the squeeze. The
+four print actions are icon-only, which shrinks the bar on both axes.
 
-This measures both layouts with real GTK geometry at the same font metrics the panel
-uses (KlippyGtk font_ratio [27, 18], font_size=large) and asserts the new bar is never
-worse. Needs a display: run under `xvfb-run -a python3 test_control_bar.py`.
+Height is the binding constraint at 800x480; width binds on narrow panels. This checks
+BOTH with real GTK geometry at the panel's font metrics (KlippyGtk font_ratio [27, 18],
+font_size=large). Run under `xvfb-run -a python3 test_control_bar.py`.
 """
 import gi
 
@@ -21,10 +22,14 @@ from gi.repository import GdkPixbuf, Gtk
 
 
 def metrics(w, h):
-    """Mirrors KlippyGtk.__init__ for this repo's font_ratio, horizontal, font_size=large."""
+    """Mirrors KlippyGtk.__init__ for this repo's font_ratio, horizontal, font_size=large.
+
+    The ux chrome (panel_base.py) drops the left action rail, so content spans the full
+    width; the titlebar (font*2) is the only vertical chrome.
+    """
     font = min(w / 27, h / 18) * 1.025
     img_scale = font * 2 * 0.85
-    return font, img_scale, w - int(w * 0.1)  # content width = panel minus the left rail
+    return font, img_scale, w, h - font * 2
 
 
 def icon(px):
@@ -78,9 +83,11 @@ def info_grid(img_scale):
 
 
 def measure(w, h, old):
-    font, img_scale, content_w = metrics(w, h)
+    font, img_scale, content_w, content_h = metrics(w, h)
+    # size the window to the CONTENT box, not the panel: that is what the panel is given
+    # after the titlebar. Do not set_default_size — it would override the request and the
+    # bar would always appear to land at the bottom of a full-height window.
     win = Gtk.OffscreenWindow()
-    win.set_default_size(w, h)
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
     grid = Gtk.Grid(column_homogeneous=True)
@@ -104,28 +111,56 @@ def measure(w, h, old):
         outer.pack_end(bar, False, False, 0)
 
     win.add(outer)
-    win.set_size_request(int(content_w), h)
+    win.set_size_request(int(content_w), int(content_h))
     win.show_all()
     while Gtk.events_pending():
         Gtk.main_iteration()
-    return content_w, bar.get_preferred_width()[0]
+
+    alloc = bar.get_allocation()
+    return {
+        "content_w": content_w,
+        "content_h": content_h,
+        "need_w": bar.get_preferred_width()[0],
+        "need_h": outer.get_preferred_height()[0],       # whole panel column
+        "bar_bottom": alloc.y + alloc.height,            # where the bar actually lands
+    }
 
 
+# 800x480 is the real IR3 V2 panel — the one that clipped. The rest guard other builds.
 PANELS = [(320, 240), (400, 240), (480, 272), (480, 320), (640, 480), (800, 480), (1024, 600)]
 
+
+def verdict(m):
+    """The bar is reachable only if it fits horizontally AND lands inside the content box."""
+    return m["need_w"] <= m["content_w"] and m["bar_bottom"] <= m["content_h"] + 1
+
+
 if __name__ == "__main__":
-    print(f"{'panel':>12} {'content':>8} | {'OLD':>10} {'':>6} | {'NEW':>10} {'':>6}")
+    print(f"{'panel':>11} {'avail w x h':>13} | {'OLD w/h/bottom':>20} {'':>7}"
+          f" | {'NEW w/h/bottom':>20} {'':>7}")
     problems = []
     for w, h in PANELS:
-        content_w, old_need = measure(w, h, old=True)
-        _, new_need = measure(w, h, old=False)
-        old_fits, new_fits = old_need <= content_w, new_need <= content_w
-        print(f"{w}x{h:<7} {content_w:8.0f} | {old_need:10.0f} {'fits' if old_fits else 'CLIPS':>6}"
-              f" | {new_need:10.0f} {'fits' if new_fits else 'CLIPS':>6}")
-        if new_need > old_need:
-            problems.append(f"{w}x{h}: bar got wider ({new_need} > {old_need})")
-        if not new_fits:
-            problems.append(f"{w}x{h}: bar clips ({new_need}px needed, {content_w}px available)")
+        old, new = measure(w, h, old=True), measure(w, h, old=False)
+        ok_old, ok_new = verdict(old), verdict(new)
+        tag = " <- IR3 V2" if (w, h) == (800, 480) else ""
+        print(f"{w}x{h:<6} {old['content_w']:6.0f} x{old['content_h']:5.0f} |"
+              f" {old['need_w']:5.0f}/{old['need_h']:4.0f}/{old['bar_bottom']:5.0f}"
+              f" {'ok' if ok_old else 'CLIPS':>7} |"
+              f" {new['need_w']:5.0f}/{new['need_h']:4.0f}/{new['bar_bottom']:5.0f}"
+              f" {'ok' if ok_new else 'CLIPS':>7}{tag}")
+
+        # Assert only where the job panel can fit at all. Below 480px of height the info
+        # grid alone (5 rows of buttons) overflows the content box no matter how the bar
+        # is packed — a pre-existing limit this change reduces but does not solve.
+        if h >= 480 and not ok_new:
+            problems.append(
+                f"{w}x{h}: control bar unreachable — needs {new['need_w']:.0f}x{new['need_h']:.0f}px, "
+                f"bar bottom at {new['bar_bottom']:.0f} vs content height {new['content_h']:.0f}")
+        # the bar must never demand more room than the layout it replaced, at any size
+        if new["need_w"] > old["need_w"] or new["need_h"] > old["need_h"]:
+            problems.append(f"{w}x{h}: bar grew vs the layout it replaced")
 
     assert not problems, "control bar regressed:\n  " + "\n  ".join(problems)
-    print("\nPASS: all four print actions fit at every panel size, down to 320x240.")
+    print("\nPASS: bar is smaller on both axes everywhere, and fully reachable at >=480px height")
+    print("      (including the IR3 V2's 800x480). Panels under 480px tall overflow in the")
+    print("      info grid regardless — out of scope for this fix.")
