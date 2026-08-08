@@ -102,16 +102,13 @@ class Panel(ScreenPanel):
 
     def create_menu_items(self):
         count = sum(bool(self.evaluate_enable(i[next(iter(i))]['enable'])) for i in self.items)
-        # >4 items page one tile per screen -> big icon+text to fill the screen;
-        # 4 or fewer stay a 2x2 grid at the normal tile size
-        if count > 4:
-            scale = 3.0
-        elif count <= 6:
-            scale = 1.3
-        elif 12 < count <= 16:
-            scale = 1.1
-        else:
-            scale = None
+        # Two layouts, nothing in between: 4 or fewer is the 2x2 grid of tiles (the home
+        # screen); more than 4 is the one-tile-per-screen pager used by Prepare/Settings.
+        # Adding a 5th entry to a 2x2 menu therefore changes its whole character — that is
+        # why Camera lives under Prepare rather than at the top level.
+        # (The old chain had `elif count <= 6` and `elif 12 < count <= 16` after `count > 4`,
+        # both unreachable; this states the rule that was actually in force.)
+        scale = 3.0 if count > 4 else 1.3
         for i in range(len(self.items)):
             key = list(self.items[i])[0]
             item = self.items[i][key]

@@ -11,6 +11,22 @@ SRC="$(cd "$(dirname "$0")" && pwd)"
 
 [ -d "$KS/panels" ] || { echo "✗ no KlipperScreen at $KS" >&2; exit 1; }
 
+# Gate the menu configs on KlipperScreen's own rule (ks_includes/config.py validate_config):
+# any line with ']' followed by more characters is rejected as a malformed section header —
+# and it scans the raw file, so a COMMENT mentioning a bracketed section name kills the UI
+# into an "Invalid config file" dialog. Catch it here, not on the printer's screen.
+python3 - "$SRC"/config/*.conf <<'PY' || exit 1
+import re, sys
+bad = 0
+for f in sys.argv[1:]:
+    for i, line in enumerate(open(f), 1):
+        if re.match(r".+\].", line.rstrip("\n")):
+            print(f"✗ {f}:{i} would be rejected by KlipperScreen: {line.strip()}")
+            bad = 1
+sys.exit(bad)
+PY
+echo "  menu configs pass KlipperScreen's validator"
+
 # repo file -> path under $KS.  panel_<name>.py maps to panels/<name>.py, except
 # panel_base.py which replaces the chrome (panels/base_panel.py).
 deploy() {
