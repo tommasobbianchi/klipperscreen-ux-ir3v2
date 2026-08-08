@@ -195,6 +195,20 @@ button.active {
 .printing-progress-text,
 .printing-status-label { color: @text; }
 
+/* ---- ux: job-screen readouts are labels-with-an-icon, not touch targets. At the theme's
+       +50% font each row came out 50px tall and its label reported a ~267px minimum width,
+       so the readout block alone demanded 630x250 and pushed the panel past 800x480 on both
+       axes — the control bar's stop button fell off the right edge and the bar off the
+       bottom. Smaller type and no vertical padding fit them with headroom. ---- */
+.printing-info button {
+    font-size: 0.78em;
+    min-height: 0;
+    padding: 0 6px;
+    margin: 2px 0.1em;
+}
+.printing-filename { font-size: 0.88em; }
+.printing-status { font-size: 0.72em; }
+
 .message {
     border-color: @error;
     color: @text;

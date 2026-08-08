@@ -114,7 +114,9 @@ class Panel(ScreenPanel):
         box.add(self.labels['progress_text'])
 
         overlay = Gtk.Overlay(hexpand=True)
-        overlay.set_size_request(*(self._gtk.font_size * 5,) * 2)
+        # ux: font*4, not font*5. At the +50% theme font on 800x480 the ring row was 136px
+        # of a 426px content box and the panel overran by 25px. font*4 buys back 28px.
+        overlay.set_size_request(*(self._gtk.font_size * 4,) * 2)
         overlay.add(self.labels['darea'])
         overlay.add_overlay(box)
         self.grid.attach(overlay, 0, 0, 1, 1)
@@ -150,16 +152,28 @@ class Panel(ScreenPanel):
         self.content.add(outer)
 
     def create_status_grid(self, widget=None):
+        # ux: readout icons at 0.7*bts. These are labels-with-an-icon, not touch targets —
+        # at full bts each row is 50px and the four of them plus the ring left the panel 2px
+        # from overflowing. At 0.7 the rows are ~40px, which is the headroom for longer
+        # filenames, extra temp sensors and "Left: 1 hour 46 minutes | 05:49".
+        rs = self.bts * 0.7
         buttons = {
-            'speed': self._gtk.Button("speed+", "-", None, self.bts, Gtk.PositionType.LEFT, 1),
-            'z': self._gtk.Button("home-z", "-", None, self.bts, Gtk.PositionType.LEFT, 1),
-            'extrusion': self._gtk.Button("extrude", "-", None, self.bts, Gtk.PositionType.LEFT, 1),
-            'fan': self._gtk.Button("fan", "-", None, self.bts, Gtk.PositionType.LEFT, 1),
-            'elapsed': self._gtk.Button("clock", "-", None, self.bts, Gtk.PositionType.LEFT, 1),
-            'left': self._gtk.Button("hourglass", "-", None, self.bts, Gtk.PositionType.LEFT, 1),
+            'speed': self._gtk.Button("speed+", "-", None, rs, Gtk.PositionType.LEFT, 1),
+            'z': self._gtk.Button("home-z", "-", None, rs, Gtk.PositionType.LEFT, 1),
+            'extrusion': self._gtk.Button("extrude", "-", None, rs, Gtk.PositionType.LEFT, 1),
+            'fan': self._gtk.Button("fan", "-", None, rs, Gtk.PositionType.LEFT, 1),
+            'elapsed': self._gtk.Button("clock", "-", None, rs, Gtk.PositionType.LEFT, 1),
+            'left': self._gtk.Button("hourglass", "-", None, rs, Gtk.PositionType.LEFT, 1),
         }
         for button in buttons:
             buttons[button].set_halign(Gtk.Align.START)
+            # ux: KlippyGtk.format_label turns on line-wrap, which keeps a label's MINIMUM
+            # width at the full text ("100%  43/ 45 mm/s" = 267px) instead of collapsing to
+            # the ellipsis. Four of those forced the readout grid to 630px and the panel past
+            # the screen edge. These are one-line readouts — wrap off, ellipsis on.
+            if (lbl := find_widget(buttons[button], Gtk.Label)) is not None:
+                lbl.set_line_wrap(False)
+                lbl.set_ellipsize(Pango.EllipsizeMode.END)
         buttons['fan'].connect("clicked", self.menu_item_clicked, {"panel": "fan"})
         self.buttons.update(buttons)
 
@@ -371,12 +385,19 @@ class Panel(ScreenPanel):
             'cancel': self._gtk.Button("stop", None, "color2", bar_scale),
             'control': self._gtk.Button("settings", None, "color3", bar_scale),
             'fine_tune': self._gtk.Button("fine-tune", None, "color4", bar_scale),
-            'menu': self._gtk.Button("complete", _("Main Menu"), "color4"),
+            # idle-state bar keeps labels (two save-offset buttons share the home-z icon, so
+            # icon-only would make them indistinguishable) but at one line: the default two
+            # lines made this bar 11px taller than the content box allows.
+            'menu': self._gtk.Button("complete", _("Main Menu"), "color4", bar_scale,
+                                     Gtk.PositionType.TOP, 1),
             'pause': self._gtk.Button("pause", None, "color1", bar_scale),
-            'restart': self._gtk.Button("refresh", _("Restart"), "color3"),
+            'restart': self._gtk.Button("refresh", _("Restart"), "color3", bar_scale,
+                                        Gtk.PositionType.TOP, 1),
             'resume': self._gtk.Button("resume", None, "color1", bar_scale),
-            'save_offset_probe': self._gtk.Button("home-z", _("Save Z") + "\n" + "Probe", "color1"),
-            'save_offset_endstop': self._gtk.Button("home-z", _("Save Z") + "\n" + "Endstop", "color2"),
+            'save_offset_probe': self._gtk.Button("home-z", _("Save Z") + " Probe", "color1",
+                                                  bar_scale, Gtk.PositionType.TOP, 1),
+            'save_offset_endstop': self._gtk.Button("home-z", _("Save Z") + " Endstop", "color2",
+                                                    bar_scale, Gtk.PositionType.TOP, 1),
         }
         self.buttons['cancel'].connect("clicked", self.cancel)
         self.buttons['control'].connect("clicked", self._screen._go_to_submenu, "")
@@ -619,7 +640,10 @@ class Panel(ScreenPanel):
                         f"{data['print_stats']['info']['current_layer']} / "
                         f"{self.labels['total_layers'].get_text()}"
                     )
-            if 'total_duration' in data["print_stats"]:
+            # guard on the key actually read: Moonraker sends total_duration without
+            # print_duration, and the mismatch raised KeyError on every tick, aborting
+            # process_update before update_time_left() — so progress and ETA froze mid-print.
+            if 'print_duration' in data["print_stats"]:
                 self.labels["duration"].set_label(self.format_time(data["print_stats"]["print_duration"]))
             if self.state in ["printing", "paused"]:
                 self.update_time_left()
@@ -791,8 +815,11 @@ class Panel(ScreenPanel):
             max_width = self._screen.width * 0.9
             max_height = self._screen.height / 4
         else:
-            max_width = self._screen.width * .25
-            max_height = self._gtk.content_height * 0.47
+            # ux: .16 not .25. The thumbnail sets a hard minimum width on its button, and at
+            # .25 (223px on 800x480) it plus the readout grid needed 853px of an 800px screen,
+            # which pushed the control bar's rightmost button off the edge.
+            max_width = self._screen.width * .16
+            max_height = self._gtk.content_height * 0.40
         width = min(self.labels['thumbnail'].get_allocated_width(), max_width)
         height = min(self.labels['thumbnail'].get_allocated_height(), max_height)
         if width <= 1 or height <= 1:

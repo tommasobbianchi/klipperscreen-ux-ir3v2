@@ -61,17 +61,21 @@ class Panel(ScreenPanel):
             extgrid.attach(self.labels[f"edelta{i}"], j, 0, 1, 1)
         grid = Gtk.Grid(column_homogeneous=True)
 
-        self.labels['z+'] = self._gtk.Button("z-farther", "Z+", "color1")
-        self.labels['z-'] = self._gtk.Button("z-closer", "Z-", "color1")
+        # ux: icons at 1.0 instead of KlippyGtk's default 1.38. At the theme's +50% font the
+        # three action rows came to 118px each and the panel needed 441px of a 426px content
+        # box, clipping the bottom row — which is Extrusion, reachable from the print bar.
+        adj = 1.0
+        self.labels['z+'] = self._gtk.Button("z-farther", "Z+", "color1", adj)
+        self.labels['z-'] = self._gtk.Button("z-closer", "Z-", "color1", adj)
         self.labels['zoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
                                                   "color1", self.bts, Gtk.PositionType.LEFT, 1)
-        self.labels['speed+'] = self._gtk.Button("speed+", _("Speed +"), "color3")
-        self.labels['speed-'] = self._gtk.Button("speed-", _("Speed -"), "color3")
+        self.labels['speed+'] = self._gtk.Button("speed+", _("Speed +"), "color3", adj)
+        self.labels['speed-'] = self._gtk.Button("speed-", _("Speed -"), "color3", adj)
         self.labels['speedfactor'] = self._gtk.Button("refresh", "  100%",
                                                       "color3", self.bts, Gtk.PositionType.LEFT, 1)
 
-        self.labels['extrude+'] = self._gtk.Button("flow+", _("Extrusion +"), "color4")
-        self.labels['extrude-'] = self._gtk.Button("flow-", _("Extrusion -"), "color4")
+        self.labels['extrude+'] = self._gtk.Button("flow+", _("Extrusion +"), "color4", adj)
+        self.labels['extrude-'] = self._gtk.Button("flow-", _("Extrusion -"), "color4", adj)
         self.labels['extrudefactor'] = self._gtk.Button("refresh", "  100%",
                                                         "color4", self.bts, Gtk.PositionType.LEFT, 1)
         if self._screen.vertical_mode:

@@ -30,6 +30,7 @@ done
 echo "▶ widgets + menu tree"
 deploy ks_includes/KlippyGtk.py ks_includes/KlippyGtk.py
 deploy config/main_menu.conf    config/main_menu.conf
+deploy config/print_menu.conf   config/print_menu.conf
 
 echo "▶ theme"
 bash "$SRC/styles/ux/install.sh" "$KS" "$CONF"

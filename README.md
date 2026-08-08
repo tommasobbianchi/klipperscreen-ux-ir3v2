@@ -26,8 +26,25 @@ keeps a `.stock` copy of the original.
 | **Network** | `panel_network.py` | `panels/network.py` | pager idiom |
 | **Limits** | `panel_limits.py` | `panels/limits.py` | pager idiom |
 | **Type scale** | `ks_includes/KlippyGtk.py` | `ks_includes/KlippyGtk.py` | `font_ratio` `[40,27]` → `[27,18]`: ~50% larger global font for touch |
-| **Menu tree** | `config/main_menu.conf` | `config/main_menu.conf` | nested Print / Prepare / Settings / Infinity Flow tree |
+| **Menu tree** | `config/main_menu.conf` | `config/main_menu.conf` | nested Print / Prepare / Settings / Camera / Infinity Flow tree |
+| **Print menu** | `config/print_menu.conf` | `config/print_menu.conf` | what the job screen's gear opens mid-print |
 | **Everything** | `styles/ux/` | `styles/ux/` | dark flat cards, one blue accent, iOS-style blue toggles |
+
+## Reachability
+
+Panels the machine has but the menu tree never reached, now routed:
+
+| Panel | Where | Why it mattered |
+|---|---|---|
+| `camera` | Home, and the print menu | two cameras are enabled on this printer and nothing opened either — on a belt printer, watching the take-off is a primary action |
+| `fine_tune` | Prepare (was job screen only) | the belt Z offset could not be trimmed between prints |
+| `settings` | Settings → Display | KlipperScreen's own prefs (theme, font size, blanking); stock `main_menu` had it, the ux tree dropped it |
+| `gcode_macros` | Settings → Macros | `[displayed_macros Printer]` is configured on this machine but nothing opened the panel it controls |
+| `console` | Settings | diagnostics |
+| `fan` | Prepare | was reachable only from the job screen |
+
+`Move` and `Extrude` in the print menu are gated on `pause_resume.is_paused` — stock gated
+Move but not Extrude, so extruding mid-print was one tap away.
 
 ## Belt-axis babystepping
 
@@ -60,19 +77,28 @@ Only layout changes. All device config and macros are kept: timezone, `font_size
 language, `print_estimate_method`, the `[displayed_macros Printer]` set, the `[graph Printer]`
 toggles, and the custom `[menu __main infinity_flow]` panel + `infinity_flow.py`.
 
-## Test
+## Fitting 800x480
+
+The theme runs a ~50% larger font than stock (`font_ratio` `[40,27]` → `[27,18]`, so 27.3px
+instead of 18.2). Every `em` in `base.css` scales with it, so panels that fit stock can
+overflow here — and they overflow *silently*: GTK allocates the minimum and clips, so a
+control simply is not on screen. That is how the job screen shipped with its stop button
+two-thirds off the right edge and its whole control bar below the bottom edge.
+
+Measuring a hand-built mock of a layout does not catch this — only the real modules with the
+real stylesheets do. `uibench.py` renders the shipped panels offscreen at 800x480 with
+`base.css` + `styles/ux/style.css` applied and fails if anything does not fit:
 
 ```bash
-xvfb-run -a python3 test_control_bar.py
+xvfb-run -a python3 uibench.py --all                # audit every panel, exit 1 on overflow
+xvfb-run -a python3 uibench.py job_status printing  # one panel + out/<panel>.png
 ```
 
-Measures the job-status control bar with real GTK geometry at the panel's font metrics and
-fails if any of the four print actions would fall outside the content box. As row 3 of the
-job grid the bar needed 429px of the IR3 V2's 425px content height and its bottom was cut
-off; packed in its own box it needs 391px, with the bar fully inside at y=370..425.
+It needs a KlipperScreen checkout with these files deployed over it (`KS_DIR=~/KlipperScreen`,
+the default). No printer or network — ScreenPanel's dependencies are mocked.
 
-Panels under 480px tall still overflow — the 5-row info grid alone exceeds the content box
-there, independent of the bar. Not addressed; the IR3 V2 is 800x480.
+Run it after any layout change. The margins are not generous: the job screen clears the
+content box by 20–42px.
 
 ## Revert
 
